@@ -9,12 +9,13 @@ public class Java_LexAnalysis
     {
         START,
         ERR,
-        ACC,
         KEYWORD,
         IDENTIFIER,
         COMMENT,
         COMMENT_STAR,
+        COMMENT_END,
         NUM,
+        NUM_POINT,
         OP_MINUS,
         OP_MINUS_MINUS,
         OP_MINUS_EQUAL,
@@ -28,6 +29,8 @@ public class Java_LexAnalysis
         OP_DIVIDE_EQUAL,
         OP_MOD,
         OP_MOD_EQUAL,
+        OP_XOR,
+        OP_XOR_EQUAL,
         OP_AND,
         OP_AND_AND,
         OP_AND_EQUAL,
@@ -36,12 +39,6 @@ public class Java_LexAnalysis
         OP_OR_EQUAL,
         OP_EXCLAMATION,
         OP_EXCLAMATION_EQUAL,
-        OP_LEFT_BRACKET,
-        OP_RIGHT_BRACKET,
-        OP_LEFT_BRACE,
-        OP_RIGHT_BRACE,
-        OP_LEFT_PARENTHESIS,
-        OP_RIGHT_PARENTHESIS,
         OP_LESS,
         OP_LESS_EQUAL,
         OP_LESS_LESS,
@@ -52,8 +49,6 @@ public class Java_LexAnalysis
         OP_GREATER_GREATER_EQUAL,
         OP_EQUAL,
         OP_EQUAL_EQUAL,
-        OP_XOR,
-        OP_XOR_EQUAL,
         OP_COMMA,
         OP_SEMICOLON,
         OP_DOT,
@@ -62,6 +57,17 @@ public class Java_LexAnalysis
         OP_TILDE,
         OP_QUOTATION,
         OP_SINGLE_QUOTATION,
+    }
+
+    enum BracketType
+    {
+        START,
+        LEFT_BRACKET,
+        RIGHT_BRACKET,
+        LEFT_BRACE,
+        RIGHT_BRACE,
+        LEFT_PARENTHESIS,
+        RIGHT_PARENTHESIS,
     }
 
     private static StringBuffer prog = new StringBuffer();
@@ -79,6 +85,8 @@ public class Java_LexAnalysis
         //     prog.append(sc.nextLine());
         // }
         prog.append("/*HelloWorld!*!asjldjgaer;rgvjea*/");
+        prog.append("12345.2234");
+        prog.append("int main");
     }
 
     // add your method here!!
@@ -120,25 +128,246 @@ public class Java_LexAnalysis
         int n = prog.length();
         StringBuilder stack = new StringBuilder();
         TokenType currentType = TokenType.START;
+        BracketType currentBracket = BracketType.START;
         while (currentIndex < n) {
             char c = prog.charAt(currentIndex);
             switch (c){
+                case '.':
+                    if(currentType == TokenType.START||currentType == TokenType.NUM){
+                        currentType = TokenType.NUM_POINT;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else{
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '+':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_PLUS;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_PLUS){
+                        currentType = TokenType.OP_PLUS_PLUS;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '-':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_MINUS;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_MINUS){
+                        currentType = TokenType.OP_MINUS_MINUS;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '*':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_MULTIPLY;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_DIVIDE){
+                        currentType = TokenType.COMMENT;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT||currentType == TokenType.COMMENT_STAR){
+                        currentType = TokenType.COMMENT_STAR;
+                        stack.append(c);
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
                 case '/':
                     if(currentType == TokenType.START){
                         currentType = TokenType.OP_DIVIDE;
                         stack.append(c);
                     }else if(currentType == TokenType.COMMENT_STAR) {
-                        currentType = TokenType.ACC;
-                        stack.append(c);
-                    }
-                    break;
-                case '*':
-                    if(currentType == TokenType.OP_DIVIDE){
-                        currentType = TokenType.COMMENT;
+                        currentType = TokenType.COMMENT_END;
                         stack.append(c);
                     }else if(currentType == TokenType.COMMENT){
-                        currentType = TokenType.COMMENT_STAR;
                         stack.append(c);
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '%':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_MOD;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '^':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_XOR;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '&':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_AND;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_AND){
+                        currentType = TokenType.OP_AND_AND;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '|':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_OR;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_OR){
+                        currentType = TokenType.OP_OR_OR;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else{
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '!':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.OP_EXCLAMATION;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else{
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '>':
+                    if(currentType == TokenType.OP_MINUS){
+                        currentType = TokenType.OP_MINUS_GREATER;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else{
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '=':
+                    if(currentType == TokenType.OP_DIVIDE){
+                        currentType = TokenType.OP_DIVIDE_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_MINUS){
+                        currentType = TokenType.OP_MINUS_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_PLUS){
+                        currentType = TokenType.OP_PLUS_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_MULTIPLY){
+                        currentType = TokenType.OP_MULTIPLY_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_MOD){
+                        currentType = TokenType.OP_MOD_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_AND){
+                        currentType = TokenType.OP_AND_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_OR){
+                        currentType = TokenType.OP_OR_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_EXCLAMATION){
+                        currentType = TokenType.OP_EXCLAMATION_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_LESS){
+                        currentType = TokenType.OP_LESS_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_GREATER){
+                        currentType = TokenType.OP_GREATER_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_EQUAL){
+                        currentType = TokenType.OP_EQUAL_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.OP_XOR){
+                        currentType = TokenType.OP_XOR_EQUAL;
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.NUM;
+                        stack.append(c);
+                    }else if(currentType == TokenType.NUM){
+                        stack.append(c);
+                    }else if(currentType == TokenType.NUM_POINT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.IDENTIFIER){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else {
+                        currentType = TokenType.ERR;
+                    }
+                    break;
+                case 'a':case 'b':case 'c':case 'd':case 'e':case 'f':case 'g':case 'h':case 'i':case 'j':case 'k':case 'l':case 'm':case 'n':case 'o':case 'p':case 'q':case 'r':case 's':case 't':case 'u':case 'v':case 'w':case 'x':case 'y':case 'z':
+                case 'A':case 'B':case 'C':case 'D':case 'E':case 'F':case 'G':case 'H':case 'I':case 'J':case 'K':case 'L':case 'M':case 'N':case 'O':case 'P':case 'Q':case 'R':case 'S':case 'T':case 'U':case 'V':case 'W':case 'X':case 'Y':case 'Z':
+                case '_':
+                    if(currentType == TokenType.START){
+                        currentType = TokenType.IDENTIFIER;
+                        stack.append(c);
+                    }else if(currentType == TokenType.IDENTIFIER){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT){
+                        stack.append(c);
+                    }else if(currentType == TokenType.COMMENT_STAR){
+                        stack.append(c);
+                        currentType = TokenType.COMMENT;
+                    }else{
+                        currentType = TokenType.ERR;
                     }
                     break;
                 default:
@@ -149,29 +378,50 @@ public class Java_LexAnalysis
                     }else if(currentType == TokenType.COMMENT_STAR){
                         stack.append(c);
                         currentType = TokenType.COMMENT;
+                    }else{
+                        currentType = TokenType.ERR;
                     }
             }
-            if(currentType == TokenType.ACC){
-                String tmp = stack.toString();
-                if(tmp.startsWith("/*") && tmp.endsWith("*/")) {
-                    tokens.add("/*");
-                    tokens.add(tmp.substring(2, tmp.length() - 2));
-                    tokens.add("*/");
+            currentIndex++;
+            if(currentType==TokenType.NUM||currentType==TokenType.NUM_POINT){
+                if(currentIndex<n){
+                    char next = prog.charAt(currentIndex);
+                    if((next>='0'&&next<='9')||next=='.'){
+                        continue;
+                    }
                 }
+                tokens.add(stack.toString());
+                stack = new StringBuilder();
+                currentType = TokenType.START;
+            }else if(currentType==TokenType.COMMENT_END){
+                tokens.add("/*");
+                tokens.add(stack.substring(2,stack.length()-2));
+                tokens.add("*/");
+                stack = new StringBuilder();
+                currentType = TokenType.START;
+            }else if(currentType==TokenType.IDENTIFIER){
+                if(currentIndex<n){
+                    char next = prog.charAt(currentIndex);
+                    if(next>='a'&&next<='z'||next>='A'&&next<='Z'||next>='0'&&next<='9'||next=='_'){
+                        continue;
+                    }
+                }
+                tokens.add(stack.toString());
                 stack = new StringBuilder();
                 currentType = TokenType.START;
             }
-            currentIndex++;
+
         }
 
     }
 
     private static void printTokens() {
         for (String token : tokens) {
+//            System.out.println(token);
             if(map.containsKey(token)) {
                 System.out.println("<"+token + "," + map.get(token)+">");
             } else {
-                if(token.matches("[0-9]+"))
+                if(token.matches("[0-9.]+"))
                     System.out.println("<"+token + ",80>");
                 else System.out.println("<"+token + ",81>");
             }
@@ -187,7 +437,7 @@ public class Java_LexAnalysis
         read_prog();
         read_c_keys();
         analyzeProg();
-        System.out.println(tokens.size());
+//        System.out.println(tokens.size());
         printTokens();
     }
 
