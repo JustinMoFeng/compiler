@@ -14,6 +14,8 @@ public class CFGGrammerAnalyzer {
 
     private final List<LL_Grammer> grammerList = new ArrayList<>();
 
+    private final Map<String, Map<String, String>> LLParseTable = new HashMap<>();
+
     public CFGGrammerAnalyzer() {
         init();
     }
@@ -40,6 +42,128 @@ public class CFGGrammerAnalyzer {
 
     public Map<String, Set<String>> getFollow() {
         return follow;
+    }
+
+    public static void generateMap() {
+
+    }
+
+    public static void main(String[] args) {
+        CFGGrammerAnalyzer analyzer = new CFGGrammerAnalyzer();
+//        // 求出first集合
+//        for (String nonterminal : analyzer.getNonterminals()) {
+//            analyzer.calculateFirst(nonterminal);
+//        }
+//        // 打印first集合
+//        for (Map.Entry<String, Set<String>> entry : analyzer.getFirst().entrySet()) {
+//            System.out.println("First(" + entry.getKey() + ") = " + entry.getValue());
+//        }
+
+//        // 求出follow集合
+//        for (String nonterminal : analyzer.getNonterminals()) {
+//            analyzer.calculateFollow(nonterminal);
+//        }
+//        // 打印follow集合
+//        for (Map.Entry<String, Set<String>> entry : analyzer.getFollow().entrySet()) {
+//            System.out.println("Follow(" + entry.getKey() + ") = " + entry.getValue());
+//        }
+        analyzer.generateLLParseTable();
+        // 把表格打印出来
+        for (Map.Entry<String, Map<String, String>> entry : analyzer.getLLParseTable().entrySet()) {
+            System.out.println("LL(1)分析表[" + entry.getKey() + "] = " + entry.getValue());
+        }
+    }
+
+    public Map<String, Map<String, String>> getLLParseTable() {
+        return LLParseTable;
+    }
+
+    private List<String> calculateFirst(String nonterminal) {
+        if(first.containsKey(nonterminal)) {
+            return new ArrayList<>(first.get(nonterminal));
+        }
+        Set<String> firstSet = new HashSet<>();
+        for (LL_Grammer grammer : grammerList) {
+            if (grammer.getLeftWord().equals(nonterminal)) {
+                List<List<String>> rightWord = grammer.getRightWord();
+                for (List<String> strings : rightWord) {
+                    if (terminals.contains(strings.get(0))) {
+                        firstSet.add(strings.get(0));
+                    } else {
+                        int num = 0;
+                        List<String> firstList = calculateFirst(strings.get(num++));
+                        while(firstList.contains("E")) {
+                            firstList.remove("E");
+                            if (strings.size() == 1) {
+                                firstList.add("E");
+                                break;
+                            }
+                            firstList.addAll(calculateFirst(strings.get(num++)));
+                        }
+
+                        firstSet.addAll(firstList);
+                    }
+                }
+            }
+        }
+        first.put(nonterminal, firstSet);
+        return new ArrayList<>(firstSet);
+    }
+
+    private void generateLLParseTable() {
+        for (LL_Grammer grammer : grammerList) {
+            String nonterminal = grammer.getLeftWord();
+            List<List<String>> rightWordLists = grammer.getRightWord();
+
+            for (List<String> rightWords : rightWordLists) {
+                Set<String> firstSet = calculateFirstForWords(rightWords);
+
+                for (String terminal : firstSet) {
+                    if (!terminal.equals("E")) {
+                        LLParseTable.computeIfAbsent(nonterminal, k -> new HashMap<>()).put(terminal, rightWordsToString(rightWords));
+                    }
+                }
+
+                if (firstSet.contains("E")) {
+                    Set<String> followSet = follow.get(nonterminal);
+                    for (String followSymbol : followSet) {
+                        LLParseTable.computeIfAbsent(nonterminal, k -> new HashMap<>()).put(followSymbol, rightWordsToString(rightWords));
+                    }
+                }
+            }
+        }
+    }
+
+    // Helper method to calculate the FIRST set for a list of right-hand side symbols
+    private Set<String> calculateFirstForWords(List<String> words) {
+        Set<String> firstSet = new HashSet<>();
+        boolean containsEpsilon = true;
+
+        for (String word : words) {
+            if (terminals.contains(word)) {
+                firstSet.add(word);
+                containsEpsilon = false;
+                break;
+            } else {
+                Set<String> firstOfWord = first.get(word);
+                firstSet.addAll(firstOfWord);
+                if (!firstOfWord.contains("E")) {
+                    containsEpsilon = false;
+                    break;
+                }
+            }
+        }
+
+        if (containsEpsilon) {
+            firstSet.add("E");
+        }
+
+        return firstSet;
+    }
+
+    // Helper method to convert a list of right-hand side symbols to a string representation
+    private String rightWordsToString(List<String> rightWords) {
+        return String.join(" ", rightWords);
     }
 
     /**
@@ -95,8 +219,13 @@ public class CFGGrammerAnalyzer {
             calculateFirst(nonterminal);
         }
 
+        // 求出follow集合
+        for (String nonterminal : getNonterminals()) {
+            calculateFollow(nonterminal);
+        }
 
-
+        // 生成LL(1)分析表
+        generateLLParseTable();
 
     }
 
@@ -114,48 +243,16 @@ public class CFGGrammerAnalyzer {
                 String[] rightSplit2 = s.trim().split(" ");
                 List<String> rightWord = new ArrayList<>();
                 for (String s1 : rightSplit2) {
-                    if (!terminals.contains(s1)) {
+                    if (!terminals.contains(s1) && !Objects.equals(s1, "")) {
                         nonterminals.add(s1);
                     }
-                    rightWord.add(s1);
+                    if (!Objects.equals(s1, "")) rightWord.add(s1);
                 }
                 rightWordList.add(rightWord);
             }
             grammer.setRightWord(rightWordList);
             grammerList.add(grammer);
         }
-    }
-
-    private List<String> calculateFirst(String nonterminal) {
-        if(first.containsKey(nonterminal)) {
-            return new ArrayList<>(first.get(nonterminal));
-        }
-        Set<String> firstSet = new HashSet<>();
-        for (LL_Grammer grammer : grammerList) {
-            if (grammer.getLeftWord().equals(nonterminal)) {
-                List<List<String>> rightWord = grammer.getRightWord();
-                for (List<String> strings : rightWord) {
-                    if (terminals.contains(strings.get(0))) {
-                        firstSet.add(strings.get(0));
-                    } else {
-                        int num = 0;
-                        List<String> firstList = calculateFirst(strings.get(num++));
-                        while(firstList.contains("E")) {
-                            firstList.remove("E");
-                            if (strings.size() == 1) {
-                                firstList.add("E");
-                                break;
-                            }
-                            firstList.addAll(calculateFirst(strings.get(num++)));
-                        }
-
-                        firstSet.addAll(firstList);
-                    }
-                }
-            }
-        }
-        first.put(nonterminal, firstSet);
-        return new ArrayList<>(firstSet);
     }
 
     private void calculateFollow(String nonterminal) {
@@ -175,11 +272,7 @@ public class CFGGrammerAnalyzer {
                 for (int i = 0; i < right.size(); i++) {
                     String symbol = right.get(i);
                     if (nonterminals.contains(symbol)) {
-                        Set<String> followSet = follow.get(symbol);
-                        if (followSet == null) {
-                            followSet = new HashSet<>();
-                            follow.put(symbol, followSet);
-                        }
+                        Set<String> followSet = follow.computeIfAbsent(symbol, k -> new HashSet<>());
 
                         // Check if there's a symbol after the current nonterminal
                         if (i + 1 < right.size()) {
@@ -196,32 +289,16 @@ public class CFGGrammerAnalyzer {
                             }
                         } else {
                             // If at end of production, add FOLLOW of left-hand nonterminal
+                            // 先判断follow.get(grammar.getLeftWord())是否为空，如果为空，说明还没有计算过follow(grammar.getLeftWord())
+                            // 那么就先计算follow(grammar.getLeftWord())
+                            if (!follow.containsKey(grammar.getLeftWord())) {
+                                calculateFollow(grammar.getLeftWord());
+                            }
                             followSet.addAll(follow.get(grammar.getLeftWord()));
                         }
                     }
                 }
             }
-        }
-    }
-
-    public static void main(String[] args) {
-        CFGGrammerAnalyzer analyzer = new CFGGrammerAnalyzer();
-//        // 求出first集合
-//        for (String nonterminal : analyzer.getNonterminals()) {
-//            analyzer.calculateFirst(nonterminal);
-//        }
-//        // 打印first集合
-//        for (Map.Entry<String, Set<String>> entry : analyzer.getFirst().entrySet()) {
-//            System.out.println("First(" + entry.getKey() + ") = " + entry.getValue());
-//        }
-
-        // 求出follow集合
-        for (String nonterminal : analyzer.getNonterminals()) {
-            analyzer.calculateFollow(nonterminal);
-        }
-        // 打印follow集合
-        for (Map.Entry<String, Set<String>> entry : analyzer.getFollow().entrySet()) {
-            System.out.println("Follow(" + entry.getKey() + ") = " + entry.getValue());
         }
     }
 
