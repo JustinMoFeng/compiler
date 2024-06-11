@@ -1,41 +1,167 @@
 package org.example.LLParser;
 
 import org.example.LLParser.CFGGrammerAnalyzer;
+
+import java.util.*;
+
+class TreeNode {
+    String value;
+    List<TreeNode> children;
+
+    public TreeNode(String value) {
+        this.value = value;
+        this.children = new ArrayList<>();
+    }
+
+    public void addChild(TreeNode child) {
+        this.children.add(child);
+    }
+
+    public void addChildFromHead(TreeNode child) {
+        this.children.addFirst(child);
+    }
+}
+
 public class Java_LLParserAnalysis {
-    private static final StringBuffer prog = new StringBuffer();
-
-    // 导入CFG文法分析器
-    private static final CFGGrammerAnalyzer analyzer = new CFGGrammerAnalyzer();
-
-
-
-
+    private static StringBuffer prog = new StringBuffer();
+    private static List<List<String>> tokens = new ArrayList<>();
+    private static TreeNode syntaxTreeRoot;
 
     /**
      * this method is to read the standard input
      */
     private static void read_prog() {
+        // Sample input for testing
 //        Scanner sc = new Scanner(System.in);
 //        while (sc.hasNextLine()) {
-//            prog.append(sc.nextLine());
+//            prog.append(sc.nextLine().trim()).append(" ");
 //        }
         prog.append("{\n");
-        prog.append("ID = NUM ;\n");
+        prog.append("while ( ID == NUM )\n");
+        prog.append("{\n");
+        prog.append("ID = NUM\n");
+        prog.append("}\n");
         prog.append("}");
     }
 
+    private static void tokenize() {
+        // 记录每一个token所在的行号
+        int line = 1;
+        StringBuilder token = new StringBuilder();
 
-    // add your method here!!
+        for (int i = 0; i < prog.length(); i++) {
+            char ch = prog.charAt(i);
 
+            if (ch == '\n') {
+                if (token.length()>0) {
+                    tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
+                    token.setLength(0);
+                }
+                line++;
+            } else if (ch == ' ' || ch == '\t') {
+                if (!token.isEmpty()) {
+                    tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
+                    token.setLength(0);
+                }
+            } else {
+                token.append(ch);
+            }
+        }
 
+        // Add the last token if there is any
+        if (!token.isEmpty()) {
+            tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
+        }
+    }
 
+    private static void parse(CFGGrammerAnalyzer analyzer) {
+        Stack<TreeNode> stack = new Stack<>();
+        syntaxTreeRoot = new TreeNode("program");  // Assuming "program" is the start symbol
+        stack.push(new TreeNode("$"));
+        stack.push(syntaxTreeRoot);
+
+        int index = 0;
+
+        while (!stack.isEmpty()) {
+            TreeNode topNode = stack.peek();
+            String top = topNode.value;
+            String currentToken = index < tokens.size() ? tokens.get(index).get(0) : "$";
+            String currentLine = index < tokens.size() ? Integer.parseInt(tokens.get(index).get(1))-1 + "" : "-1";
+
+            if (analyzer.getTerminals().contains(top) || top.equals("$")) {
+//                System.out.println("top: " + top + ", currentToken: " + currentToken);
+                if (top.equals(currentToken)) {
+                    stack.pop();
+                    index++;
+                } else {
+                    System.out.println("语法错误,第" + currentLine + "行,缺少" + currentToken);
+                    return;
+                }
+            } else if (analyzer.getNonterminals().contains(top)) {
+                String production = analyzer.getLLParseTable().get(top).get(currentToken);
+//                System.out.println("top: " + top + ", currentToken: " + currentToken + ", production: " + production);
+                if (production != null) {
+                    stack.pop();
+                    if (!production.equals("E")) {
+                        String[] productionTokens = production.split(" ");
+                        for (int i = productionTokens.length - 1; i >= 0; i--) {
+                            TreeNode childNode = new TreeNode(productionTokens[i]);
+                            topNode.addChildFromHead(childNode);
+                            stack.push(childNode);
+                        }
+                    } else {
+                        topNode.addChild(new TreeNode("E"));
+                    }
+                } else {
+                    // 找到stack中第下一个终结符
+                    Stack<TreeNode> tempStack = new Stack<>();
+                    while (!stack.isEmpty()) {
+                        TreeNode tempNode = stack.pop();
+                        tempStack.push(tempNode);
+                        if (analyzer.getTerminals().contains(tempNode.value)) {
+                            break;
+                        }
+                    }
+                    System.out.println("语法错误,第" + currentLine + "行,缺少\"" + tempStack.peek().value + "\"");
+                    tokens.add(index, Arrays.asList(tempStack.peek().value, currentLine));
+                    // 复原
+                    while (!tempStack.isEmpty()) {
+                        stack.push(tempStack.pop());
+                    }
+                    continue;
+                }
+            } else {
+                System.out.println("语法错误，第" + currentLine + "行，缺少\"" + top+"\"");
+                return;
+            }
+        }
+
+        printSyntaxTree(syntaxTreeRoot, 0);
+    }
+
+    private static void printSyntaxTree(TreeNode node, int indent) {
+        for (int i = 0; i < indent; i++) {
+            System.out.print("\t");
+        }
+        System.out.println(node.value);
+        for (TreeNode child : node.children) {
+            printSyntaxTree(child, indent + 1);
+        }
+    }
+
+    private static void printError(int index) {
+        String line = index < tokens.size() ? tokens.get(index).get(1) : "unknown";
+        String token = index < tokens.size() ? tokens.get(index).get(0) : "unknown";
+        System.out.println("Syntax error at token " + (index + 1) + ": " + token + " on line " + line);
+    }
 
     /**
      * you should add some code in this method to achieve this lab
      */
-    private static void analysis() {
+    public static void analysis(CFGGrammerAnalyzer analyzer) {
         read_prog();
-
+        tokenize();
+        parse(analyzer);
     }
 
     /**
@@ -44,16 +170,7 @@ public class Java_LLParserAnalysis {
      * @param args
      */
     public static void main(String[] args) {
-        analysis();
+        CFGGrammerAnalyzer analyzer = new CFGGrammerAnalyzer();
+        analysis(analyzer);
     }
 }
-
-
-
-
-
-
-
-
-
-
