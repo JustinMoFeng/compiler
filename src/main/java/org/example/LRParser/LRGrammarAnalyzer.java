@@ -40,14 +40,7 @@ public class LRGrammarAnalyzer {
 
     public static void main(String[] args) {
         LRGrammarAnalyzer lr = new LRGrammarAnalyzer();
-        // 打印lr_grammars
-        for (Map.Entry<String, List<LR_Grammar>> entry : lr.lr_grammars.entrySet()) {
-            System.out.print(entry.getKey() + " : [");
-            for (LR_Grammar lr_grammar : entry.getValue()) {
-                System.out.print(lr_grammar.getRightWord().toString() + ",");
-            }
-            System.out.println("]");
-        }
+        lr.calculateCanonical();
     }
 
     public void parseLRGrammar(List<LL_Grammer> ll_grammars){
@@ -67,12 +60,73 @@ public class LRGrammarAnalyzer {
         }
     }
 
+    // 计算项目集规范族
     public void calculateCanonical(){
         // 初始化I0
         List<LR_Grammar> I0 = new ArrayList<>();
         I0.add(new LR_Grammar("program'", List.of("program"), 0));
+        I0 = closureHelper(I0);
+        canonicalCollection.put(0,I0);
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(0);
+        while (!queue.isEmpty()){
+            Integer index = queue.poll();
+            List<LR_Grammar> I = canonicalCollection.get(index);
+            Set<String> nextWords = new HashSet<>();
+            for (LR_Grammar lr_grammar : I) {
+                if(lr_grammar.getDotIndex() < lr_grammar.getRightWord().size()){
+                    nextWords.add(lr_grammar.getRightWord().get(lr_grammar.getDotIndex()));
+                }
+            }
+            for (String nextWord : nextWords) {
+                List<LR_Grammar> nextI = new ArrayList<>();
+                for (LR_Grammar lr_grammar : I) {
+                    if(lr_grammar.getDotIndex() < lr_grammar.getRightWord().size() && lr_grammar.getRightWord().get(lr_grammar.getDotIndex()).equals(nextWord)){
+                        LR_Grammar nextLR_Grammar = new LR_Grammar(lr_grammar.getLeftWord(),lr_grammar.getRightWord(),lr_grammar.getDotIndex()+1);
+                        nextI.add(nextLR_Grammar);
+                    }
+                }
+                nextI = closureHelper(nextI);
+                if(!canonicalCollection.containsValue(nextI)){
+                    canonicalCollection.put(canonicalCollection.size(),nextI);
+                    queue.add(canonicalCollection.size()-1);
+                }
+            }
+        }
+        // 输出项目集规范族
+        for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
+            System.out.println("I"+entry.getKey());
+            for (LR_Grammar lr_grammar : entry.getValue()) {
+                System.out.println(lr_grammar);
+            }
+        }
+
         
 
+    }
+
+    // 计算集群的闭包
+    public List<LR_Grammar> closureHelper(List<LR_Grammar> I){
+        // 初始化一个set用于存储已经遍历过的项目
+        Set<LR_Grammar> closure = new HashSet<>(I);
+        // 初始化一个队列用于存储待遍历的项目
+        Queue<LR_Grammar> queue = new LinkedList<>(I);
+        while (!queue.isEmpty()){
+            LR_Grammar lr_grammar = queue.poll();
+            // 如果当前项目的点在最后一个位置，则跳过
+            if(lr_grammar.getDotIndex() == lr_grammar.getRightWord().size()){
+                continue;
+            }
+            String nextWord = lr_grammar.getRightWord().get(lr_grammar.getDotIndex());
+            if(lr_grammars.containsKey(nextWord)){
+                for (LR_Grammar grammar : lr_grammars.get(nextWord)) {
+                    if(closure.add(grammar)){
+                        queue.add(grammar);
+                    }
+                }
+            }
+        }
+        return new ArrayList<>(closure);
     }
 
 

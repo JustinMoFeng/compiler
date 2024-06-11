@@ -43,4 +43,12 @@ public class LR_Grammar {
         this.dotIndex = dotIndex;
     }
 
+    @Override
+    public String toString() {
+        return "LR_Grammar{" +
+                "LeftWord='" + LeftWord + '\'' +
+                ", RightWord=" + RightWord +
+                ", dotIndex=" + dotIndex +
+                '}';
+    }
 }
