@@ -1,7 +1,5 @@
 package org.example.LLParser;
 
-import org.example.LLParser.CFGGrammerAnalyzer;
-
 import java.util.*;
 
 class TreeNode {
@@ -74,7 +72,7 @@ public class Java_LLParserAnalysis {
         }
     }
 
-    private static void parse(CFGGrammerAnalyzer analyzer) {
+    private static void parse(LLGrammerAnalyzer analyzer) {
         Stack<TreeNode> stack = new Stack<>();
         syntaxTreeRoot = new TreeNode("program");  // Assuming "program" is the start symbol
         stack.push(new TreeNode("$"));
@@ -158,7 +156,7 @@ public class Java_LLParserAnalysis {
     /**
      * you should add some code in this method to achieve this lab
      */
-    public static void analysis(CFGGrammerAnalyzer analyzer) {
+    public static void analysis(LLGrammerAnalyzer analyzer) {
         read_prog();
         tokenize();
         parse(analyzer);
@@ -170,7 +168,48 @@ public class Java_LLParserAnalysis {
      * @param args
      */
     public static void main(String[] args) {
-        CFGGrammerAnalyzer analyzer = new CFGGrammerAnalyzer();
+        List<String> productions = new ArrayList<>();
+        productions.add("program -> compoundstmt");
+        productions.add("stmt ->  ifstmt  |  whilestmt  |  assgstmt  |  compoundstmt");
+        productions.add("compoundstmt ->  { stmts }");
+        productions.add("stmts ->  stmt stmts   |   E");
+        productions.add("ifstmt ->  if ( boolexpr ) then stmt else stmt");
+        productions.add("whilestmt ->  while ( boolexpr ) stmt");
+        productions.add("assgstmt ->  ID = arithexpr ;");
+        productions.add("boolexpr  ->  arithexpr boolop arithexpr");
+        productions.add("boolop ->   <  |  >  |  <=  |  >=  | ==");
+        productions.add("arithexpr  ->  multexpr arithexprprime");
+        productions.add("arithexprprime ->  + multexpr arithexprprime  |  - multexpr arithexprprime  |   E");
+        productions.add("multexpr ->  simpleexpr  multexprprime");
+        productions.add("multexprprime ->  * simpleexpr multexprprime  |  / simpleexpr multexprprime  |   E");
+        productions.add("simpleexpr ->  ID  |  NUM  |  ( arithexpr )");
+
+        List<String> terminals = new ArrayList<>();
+        // 终结符初始化
+        terminals.add("{");
+        terminals.add("}");
+        terminals.add("if");
+        terminals.add("(");
+        terminals.add(")");
+        terminals.add("then");
+        terminals.add("else");
+        terminals.add("while");
+        terminals.add("ID");
+        terminals.add("=");
+        terminals.add(">");
+        terminals.add("<");
+        terminals.add(">=");
+        terminals.add("<=");
+        terminals.add("==");
+        terminals.add("+");
+        terminals.add("-");
+        terminals.add("*");
+        terminals.add("/");
+        terminals.add("NUM");
+        terminals.add("E");
+        terminals.add(";");
+        terminals.add("$");
+        LLGrammerAnalyzer analyzer = new LLGrammerAnalyzer(productions, terminals);
         analysis(analyzer);
     }
 }

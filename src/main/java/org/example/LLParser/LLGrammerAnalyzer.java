@@ -2,7 +2,7 @@ package org.example.LLParser;
 
 import java.util.*;
 
-public class CFGGrammerAnalyzer {
+public class LLGrammerAnalyzer {
     private final Set<String> terminals = new HashSet<>();
     private final Set<String> nonterminals = new HashSet<>();
 
@@ -16,7 +16,13 @@ public class CFGGrammerAnalyzer {
 
     private final Map<String, Map<String, String>> LLParseTable = new HashMap<>();
 
-    public CFGGrammerAnalyzer() {
+    public LLGrammerAnalyzer() {
+        init();
+    }
+
+    public LLGrammerAnalyzer(List<String> ProductionList,List<String> terminalList){
+        productions.addAll(ProductionList);
+        terminals.addAll(terminalList);
         init();
     }
 
@@ -49,7 +55,48 @@ public class CFGGrammerAnalyzer {
     }
 
     public static void main(String[] args) {
-        CFGGrammerAnalyzer analyzer = new CFGGrammerAnalyzer();
+        List<String> productions = new ArrayList<>();
+        productions.add("program -> compoundstmt");
+        productions.add("stmt ->  ifstmt  |  whilestmt  |  assgstmt  |  compoundstmt");
+        productions.add("compoundstmt ->  { stmts }");
+        productions.add("stmts ->  stmt stmts   |   E");
+        productions.add("ifstmt ->  if ( boolexpr ) then stmt else stmt");
+        productions.add("whilestmt ->  while ( boolexpr ) stmt");
+        productions.add("assgstmt ->  ID = arithexpr ;");
+        productions.add("boolexpr  ->  arithexpr boolop arithexpr");
+        productions.add("boolop ->   <  |  >  |  <=  |  >=  | ==");
+        productions.add("arithexpr  ->  multexpr arithexprprime");
+        productions.add("arithexprprime ->  + multexpr arithexprprime  |  - multexpr arithexprprime  |   E");
+        productions.add("multexpr ->  simpleexpr  multexprprime");
+        productions.add("multexprprime ->  * simpleexpr multexprprime  |  / simpleexpr multexprprime  |   E");
+        productions.add("simpleexpr ->  ID  |  NUM  |  ( arithexpr )");
+
+        List<String> terminals = new ArrayList<>();
+        // 终结符初始化
+        terminals.add("{");
+        terminals.add("}");
+        terminals.add("if");
+        terminals.add("(");
+        terminals.add(")");
+        terminals.add("then");
+        terminals.add("else");
+        terminals.add("while");
+        terminals.add("ID");
+        terminals.add("=");
+        terminals.add(">");
+        terminals.add("<");
+        terminals.add(">=");
+        terminals.add("<=");
+        terminals.add("==");
+        terminals.add("+");
+        terminals.add("-");
+        terminals.add("*");
+        terminals.add("/");
+        terminals.add("NUM");
+        terminals.add("E");
+        terminals.add(";");
+        terminals.add("$");
+        LLGrammerAnalyzer analyzer = new LLGrammerAnalyzer(productions, terminals);
 //        // 求出first集合
 //        for (String nonterminal : analyzer.getNonterminals()) {
 //            analyzer.calculateFirst(nonterminal);
@@ -170,46 +217,6 @@ public class CFGGrammerAnalyzer {
      * this method is to initialize the terminals and nonterminals
      */
     private void init() {
-        // 终结符初始化
-        terminals.add("{");
-        terminals.add("}");
-        terminals.add("if");
-        terminals.add("(");
-        terminals.add(")");
-        terminals.add("then");
-        terminals.add("else");
-        terminals.add("while");
-        terminals.add("ID");
-        terminals.add("=");
-        terminals.add(">");
-        terminals.add("<");
-        terminals.add(">=");
-        terminals.add("<=");
-        terminals.add("==");
-        terminals.add("+");
-        terminals.add("-");
-        terminals.add("*");
-        terminals.add("/");
-        terminals.add("NUM");
-        terminals.add("E");
-        terminals.add(";");
-        terminals.add("$");
-
-        // 规则初始化
-        productions.add("program -> compoundstmt");
-        productions.add("stmt ->  ifstmt  |  whilestmt  |  assgstmt  |  compoundstmt");
-        productions.add("compoundstmt ->  { stmts }");
-        productions.add("stmts ->  stmt stmts   |   E");
-        productions.add("ifstmt ->  if ( boolexpr ) then stmt else stmt");
-        productions.add("whilestmt ->  while ( boolexpr ) stmt");
-        productions.add("assgstmt ->  ID = arithexpr ;");
-        productions.add("boolexpr  ->  arithexpr boolop arithexpr");
-        productions.add("boolop ->   <  |  >  |  <=  |  >=  | ==");
-        productions.add("arithexpr  ->  multexpr arithexprprime");
-        productions.add("arithexprprime ->  + multexpr arithexprprime  |  - multexpr arithexprprime  |   E");
-        productions.add("multexpr ->  simpleexpr  multexprprime");
-        productions.add("multexprprime ->  * simpleexpr multexprprime  |  / simpleexpr multexprprime  |   E");
-        productions.add("simpleexpr ->  ID  |  NUM  |  ( arithexpr )");
 
         // 规则预处理
         processProduction();
