@@ -34,13 +34,41 @@ public class LRGrammarAnalyzer {
 
     private final Map<Integer,List<LR_Grammar>> canonicalCollection = new HashMap<>();
 
+    public LLGrammerAnalyzer getLl_grammerAnalyzer() {
+        return ll_grammerAnalyzer;
+    }
+
+    public Map<String, List<LR_Grammar>> getLr_grammars() {
+        return lr_grammars;
+    }
+
+    public Map<Integer, List<LR_Grammar>> getCanonicalCollection() {
+        return canonicalCollection;
+    }
+
+
+    public Map<Integer, Map<String, Object>> getActionTable() {
+        return actionTable;
+    }
+
+    public Map<Integer, Map<String, Object>> getGotoTable() {
+        return gotoTable;
+    }
+
     public LRGrammarAnalyzer() {
         parseLRGrammar(ll_grammerAnalyzer.getGrammerList());
+        calculateCanonical();
+        generateLRConstructionTable();
     }
+
+    // 动作表和状态转换表
+    Map<Integer, Map<String, Object>> actionTable = new HashMap<>();
+    Map<Integer, Map<String, Object>> gotoTable = new HashMap<>();
 
     public static void main(String[] args) {
         LRGrammarAnalyzer lr = new LRGrammarAnalyzer();
         lr.calculateCanonical();
+        lr.generateLRConstructionTable();
     }
 
     public void parseLRGrammar(List<LL_Grammer> ll_grammars){
@@ -60,7 +88,6 @@ public class LRGrammarAnalyzer {
         }
     }
 
-    // 计算项目集规范族
     public void calculateCanonical(){
         // 初始化I0
         List<LR_Grammar> I0 = new ArrayList<>();
@@ -69,41 +96,66 @@ public class LRGrammarAnalyzer {
         canonicalCollection.put(0,I0);
         Queue<Integer> queue = new LinkedList<>();
         queue.add(0);
+        int i = 1;
+
         while (!queue.isEmpty()){
             Integer index = queue.poll();
             List<LR_Grammar> I = canonicalCollection.get(index);
-            Set<String> nextWords = new HashSet<>();
+            List<String> nextWords = new ArrayList<>();
             for (LR_Grammar lr_grammar : I) {
                 if(lr_grammar.getDotIndex() < lr_grammar.getRightWord().size()){
-                    nextWords.add(lr_grammar.getRightWord().get(lr_grammar.getDotIndex()));
+                    String nextWord = lr_grammar.getRightWord().get(lr_grammar.getDotIndex());
+                    if(Objects.equals(nextWord, "E")){
+                        continue;
+                    }
+                    nextWords.add(nextWord);
                 }
             }
+
             for (String nextWord : nextWords) {
                 List<LR_Grammar> nextI = new ArrayList<>();
                 for (LR_Grammar lr_grammar : I) {
-                    if(lr_grammar.getDotIndex() < lr_grammar.getRightWord().size() && lr_grammar.getRightWord().get(lr_grammar.getDotIndex()).equals(nextWord)){
-                        LR_Grammar nextLR_Grammar = new LR_Grammar(lr_grammar.getLeftWord(),lr_grammar.getRightWord(),lr_grammar.getDotIndex()+1);
-                        nextI.add(nextLR_Grammar);
+                    if (lr_grammar.getDotIndex() < lr_grammar.getRightWord().size() && lr_grammar.getRightWord().get(lr_grammar.getDotIndex()).equals(nextWord)) {
+                        nextI.add(new LR_Grammar(lr_grammar.getLeftWord(), lr_grammar.getRightWord(), lr_grammar.getDotIndex() + 1));
                     }
                 }
                 nextI = closureHelper(nextI);
-                if(!canonicalCollection.containsValue(nextI)){
-                    canonicalCollection.put(canonicalCollection.size(),nextI);
-                    queue.add(canonicalCollection.size()-1);
+                boolean isNew = true;
+                for (List<LR_Grammar> grammars : canonicalCollection.values()) {
+                    if (areGrammarsEqual(grammars, nextI)) {
+                        isNew = false;
+                        break;
+                    }
+                }
+                if (isNew) {
+                    canonicalCollection.put(i, nextI);
+                    queue.add(i);
+                    i++;
                 }
             }
         }
         // 输出项目集规范族
         for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
-            System.out.println("I"+entry.getKey());
+            System.out.println("I" + entry.getKey() + ":");
             for (LR_Grammar lr_grammar : entry.getValue()) {
-                System.out.println(lr_grammar);
+                System.out.println("    " + lr_grammar.getLeftWord() + " -> " + lr_grammar.getRightWord() + ", " + lr_grammar.getDotIndex());
             }
         }
-
-        
-
     }
+
+    // 辅助函数，检查两个List<LR_Grammar>是否相同
+    private boolean areGrammarsEqual(List<LR_Grammar> list1, List<LR_Grammar> list2) {
+        if (list1.size() != list2.size()) {
+            return false;
+        }
+        for (LR_Grammar grammar : list1) {
+            if (!list2.contains(grammar)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     // 计算集群的闭包
     public List<LR_Grammar> closureHelper(List<LR_Grammar> I){
@@ -120,14 +172,111 @@ public class LRGrammarAnalyzer {
             String nextWord = lr_grammar.getRightWord().get(lr_grammar.getDotIndex());
             if(lr_grammars.containsKey(nextWord)){
                 for (LR_Grammar grammar : lr_grammars.get(nextWord)) {
-                    if(closure.add(grammar)){
-                        queue.add(grammar);
-                    }
+                    // 循环遍历set
+                    closure.add(grammar);
+                    queue.add(grammar);
                 }
             }
         }
         return new ArrayList<>(closure);
     }
+
+    public void generateLRConstructionTable() {
+
+        // 填充动作表和状态转换表
+        for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
+            int state = entry.getKey();
+            List<LR_Grammar> items = entry.getValue();
+
+            actionTable.putIfAbsent(state, new HashMap<>());
+            gotoTable.putIfAbsent(state, new HashMap<>());
+
+            for (LR_Grammar item : items) {
+                if (item.getDotIndex() < item.getRightWord().size()) {
+                    String symbol = item.getRightWord().get(item.getDotIndex());
+                    if(Objects.equals(symbol, "E")){
+                        Set<String> follow = ll_grammerAnalyzer.getFollow().get(item.getLeftWord());
+                        for (String s : follow) {
+                            if(terminals.contains(s)){
+                                actionTable.get(state).put(s, item);
+                            }
+                        }
+                        continue;
+                    }
+                    if (terminals.contains(symbol)) {
+                        int nextState = getNextState(state, symbol);
+                        if (nextState != -1) {
+                            actionTable.get(state).put(symbol, "S" + nextState);
+                        }else{
+                            System.out.println("Error");
+                            System.out.println(state+" "+symbol);
+                            return ;
+                        }
+                    } else {
+                        int nextState = getNextState(state, symbol);
+                        if (nextState != -1) {
+                            gotoTable.get(state).put(symbol, nextState);
+                        }else{
+                            System.out.println("Error");
+                            System.out.println(state+" "+symbol);
+                            return ;
+                        }
+                    }
+                } else if (item.getLeftWord().equals("program'") && item.getRightWord().get(0).equals("program")) {
+                    actionTable.get(state).put("$", "ACC");
+                } else {
+                    // 获取item.getLeftWord()的follow集
+                    Set<String> follow = ll_grammerAnalyzer.getFollow().get(item.getLeftWord());
+                    for (String symbol : follow) {
+                        if (terminals.contains(symbol)) {
+                            actionTable.get(state).put(symbol, item);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 输出动作表和状态转换表
+        System.out.println("Action Table:");
+        for (Map.Entry<Integer, Map<String, Object>> entry : actionTable.entrySet()) {
+            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
+        }
+
+        System.out.println("Goto Table:");
+        for (Map.Entry<Integer, Map<String, Object>> entry : gotoTable.entrySet()) {
+            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
+        }
+    }
+
+    // 获取下一个状态
+    private int getNextState(int currentState, String symbol) {
+        List<LR_Grammar> items = canonicalCollection.get(currentState);
+        List<LR_Grammar> nextItems = new ArrayList<>();
+        for (LR_Grammar item : items) {
+            if (item.getDotIndex() < item.getRightWord().size() && item.getRightWord().get(item.getDotIndex()).equals(symbol)) {
+                nextItems.add(new LR_Grammar(item.getLeftWord(), item.getRightWord(), item.getDotIndex() + 1));
+            }
+        }
+        nextItems = closureHelper(nextItems);
+        for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
+            if (areGrammarsEqual(entry.getValue(), nextItems)) {
+                return entry.getKey();
+            }
+        }
+        return -1;
+    }
+
+    // 查找产生式的索引
+    private int findProductionIndex(String lhs, List<String> rhs) {
+        String production = lhs + " ->";
+        for (String s : rhs) {
+            production += " " + s;
+        }
+        System.out.println(production);
+        System.out.println(productions.indexOf(production));
+        return productions.indexOf(production);
+    }
+
 
 
 

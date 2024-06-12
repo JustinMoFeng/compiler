@@ -1,6 +1,7 @@
 package org.example.LRParser;
 
 import java.util.List;
+import java.util.Objects;
 
 public class LR_Grammar {
 
@@ -50,5 +51,18 @@ public class LR_Grammar {
                 ", RightWord=" + RightWord +
                 ", dotIndex=" + dotIndex +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LR_Grammar lrGrammar = (LR_Grammar) o;
+        return dotIndex == lrGrammar.dotIndex && Objects.equals(LeftWord, lrGrammar.LeftWord) && Objects.equals(RightWord, lrGrammar.RightWord);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(LeftWord, RightWord, dotIndex);
     }
 }
