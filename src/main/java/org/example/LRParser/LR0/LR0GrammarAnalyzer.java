@@ -1,11 +1,11 @@
-package org.example.LRParser;
+package org.example.LRParser.LR0;
 
 import org.example.LLParser.LLGrammerAnalyzer;
 import org.example.LLParser.LL_Grammer;
 
 import java.util.*;
 
-public class LRGrammarAnalyzer {
+public class LR0GrammarAnalyzer {
     private static final List<String> productions = Arrays.asList(
         "program' -> program",
         "program -> compoundstmt",
@@ -30,19 +30,19 @@ public class LRGrammarAnalyzer {
 
     private final LLGrammerAnalyzer ll_grammerAnalyzer = new LLGrammerAnalyzer(productions, terminals);
 
-    private final Map<String,List<LR_Grammar>> lr_grammars = new HashMap<>();
+    private final Map<String,List<LR0Grammar>> lr_grammars = new HashMap<>();
 
-    private final Map<Integer,List<LR_Grammar>> canonicalCollection = new HashMap<>();
+    private final Map<Integer,List<LR0Grammar>> canonicalCollection = new HashMap<>();
 
     public LLGrammerAnalyzer getLl_grammerAnalyzer() {
         return ll_grammerAnalyzer;
     }
 
-    public Map<String, List<LR_Grammar>> getLr_grammars() {
+    public Map<String, List<LR0Grammar>> getLr_grammars() {
         return lr_grammars;
     }
 
-    public Map<Integer, List<LR_Grammar>> getCanonicalCollection() {
+    public Map<Integer, List<LR0Grammar>> getCanonicalCollection() {
         return canonicalCollection;
     }
 
@@ -55,7 +55,7 @@ public class LRGrammarAnalyzer {
         return gotoTable;
     }
 
-    public LRGrammarAnalyzer() {
+    public LR0GrammarAnalyzer() {
         parseLRGrammar(ll_grammerAnalyzer.getGrammerList());
         calculateCanonical();
         generateLRConstructionTable();
@@ -66,7 +66,7 @@ public class LRGrammarAnalyzer {
     Map<Integer, Map<String, Object>> gotoTable = new HashMap<>();
 
     public static void main(String[] args) {
-        LRGrammarAnalyzer lr = new LRGrammarAnalyzer();
+        LR0GrammarAnalyzer lr = new LR0GrammarAnalyzer();
         lr.calculateCanonical();
         lr.generateLRConstructionTable();
     }
@@ -76,13 +76,13 @@ public class LRGrammarAnalyzer {
             List<List<String>> rightWord = ll_grammer.getRightWord();
             for (List<String> strings : rightWord) {
                 List<String> right = new ArrayList<>(strings);
-                LR_Grammar lr_grammar = new LR_Grammar(ll_grammer.getLeftWord(),right,0);
-                if(lr_grammars.containsKey(lr_grammar.getLeftWord())){
-                    lr_grammars.get(lr_grammar.getLeftWord()).add(lr_grammar);
+                LR0Grammar lr_0_grammar = new LR0Grammar(ll_grammer.getLeftWord(),right,0);
+                if(lr_grammars.containsKey(lr_0_grammar.getLeftWord())){
+                    lr_grammars.get(lr_0_grammar.getLeftWord()).add(lr_0_grammar);
                 }else {
-                    List<LR_Grammar> list = new ArrayList<>();
-                    list.add(lr_grammar);
-                    lr_grammars.put(lr_grammar.getLeftWord(),list);
+                    List<LR0Grammar> list = new ArrayList<>();
+                    list.add(lr_0_grammar);
+                    lr_grammars.put(lr_0_grammar.getLeftWord(),list);
                 }
             }
         }
@@ -90,8 +90,8 @@ public class LRGrammarAnalyzer {
 
     public void calculateCanonical(){
         // 初始化I0
-        List<LR_Grammar> I0 = new ArrayList<>();
-        I0.add(new LR_Grammar("program'", List.of("program"), 0));
+        List<LR0Grammar> I0 = new ArrayList<>();
+        I0.add(new LR0Grammar("program'", List.of("program"), 0));
         I0 = closureHelper(I0);
         canonicalCollection.put(0,I0);
         Queue<Integer> queue = new LinkedList<>();
@@ -100,11 +100,12 @@ public class LRGrammarAnalyzer {
 
         while (!queue.isEmpty()){
             Integer index = queue.poll();
-            List<LR_Grammar> I = canonicalCollection.get(index);
+            System.out.println(index);
+            List<LR0Grammar> I = canonicalCollection.get(index);
             List<String> nextWords = new ArrayList<>();
-            for (LR_Grammar lr_grammar : I) {
-                if(lr_grammar.getDotIndex() < lr_grammar.getRightWord().size()){
-                    String nextWord = lr_grammar.getRightWord().get(lr_grammar.getDotIndex());
+            for (LR0Grammar lr_0_grammar : I) {
+                if(lr_0_grammar.getDotIndex() < lr_0_grammar.getRightWord().size()){
+                    String nextWord = lr_0_grammar.getRightWord().get(lr_0_grammar.getDotIndex());
                     if(Objects.equals(nextWord, "E")){
                         continue;
                     }
@@ -113,15 +114,15 @@ public class LRGrammarAnalyzer {
             }
 
             for (String nextWord : nextWords) {
-                List<LR_Grammar> nextI = new ArrayList<>();
-                for (LR_Grammar lr_grammar : I) {
-                    if (lr_grammar.getDotIndex() < lr_grammar.getRightWord().size() && lr_grammar.getRightWord().get(lr_grammar.getDotIndex()).equals(nextWord)) {
-                        nextI.add(new LR_Grammar(lr_grammar.getLeftWord(), lr_grammar.getRightWord(), lr_grammar.getDotIndex() + 1));
+                List<LR0Grammar> nextI = new ArrayList<>();
+                for (LR0Grammar lr_0_grammar : I) {
+                    if (lr_0_grammar.getDotIndex() < lr_0_grammar.getRightWord().size() && lr_0_grammar.getRightWord().get(lr_0_grammar.getDotIndex()).equals(nextWord)) {
+                        nextI.add(new LR0Grammar(lr_0_grammar.getLeftWord(), lr_0_grammar.getRightWord(), lr_0_grammar.getDotIndex() + 1));
                     }
                 }
                 nextI = closureHelper(nextI);
                 boolean isNew = true;
-                for (List<LR_Grammar> grammars : canonicalCollection.values()) {
+                for (List<LR0Grammar> grammars : canonicalCollection.values()) {
                     if (areGrammarsEqual(grammars, nextI)) {
                         isNew = false;
                         break;
@@ -135,20 +136,20 @@ public class LRGrammarAnalyzer {
             }
         }
         // 输出项目集规范族
-        for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
+        for (Map.Entry<Integer, List<LR0Grammar>> entry : canonicalCollection.entrySet()) {
             System.out.println("I" + entry.getKey() + ":");
-            for (LR_Grammar lr_grammar : entry.getValue()) {
-                System.out.println("    " + lr_grammar.getLeftWord() + " -> " + lr_grammar.getRightWord() + ", " + lr_grammar.getDotIndex());
+            for (LR0Grammar lr_0_grammar : entry.getValue()) {
+                System.out.println("    " + lr_0_grammar.getLeftWord() + " -> " + lr_0_grammar.getRightWord() + ", " + lr_0_grammar.getDotIndex());
             }
         }
     }
 
-    // 辅助函数，检查两个List<LR_Grammar>是否相同
-    private boolean areGrammarsEqual(List<LR_Grammar> list1, List<LR_Grammar> list2) {
+    // 辅助函数，检查两个List<LR0Grammar>是否相同
+    private boolean areGrammarsEqual(List<LR0Grammar> list1, List<LR0Grammar> list2) {
         if (list1.size() != list2.size()) {
             return false;
         }
-        for (LR_Grammar grammar : list1) {
+        for (LR0Grammar grammar : list1) {
             if (!list2.contains(grammar)) {
                 return false;
             }
@@ -158,20 +159,20 @@ public class LRGrammarAnalyzer {
 
 
     // 计算集群的闭包
-    public List<LR_Grammar> closureHelper(List<LR_Grammar> I){
+    public List<LR0Grammar> closureHelper(List<LR0Grammar> I){
         // 初始化一个set用于存储已经遍历过的项目
-        Set<LR_Grammar> closure = new HashSet<>(I);
+        Set<LR0Grammar> closure = new HashSet<>(I);
         // 初始化一个队列用于存储待遍历的项目
-        Queue<LR_Grammar> queue = new LinkedList<>(I);
+        Queue<LR0Grammar> queue = new LinkedList<>(I);
         while (!queue.isEmpty()){
-            LR_Grammar lr_grammar = queue.poll();
+            LR0Grammar lr_0_grammar = queue.poll();
             // 如果当前项目的点在最后一个位置，则跳过
-            if(lr_grammar.getDotIndex() == lr_grammar.getRightWord().size()){
+            if(lr_0_grammar.getDotIndex() == lr_0_grammar.getRightWord().size()){
                 continue;
             }
-            String nextWord = lr_grammar.getRightWord().get(lr_grammar.getDotIndex());
+            String nextWord = lr_0_grammar.getRightWord().get(lr_0_grammar.getDotIndex());
             if(lr_grammars.containsKey(nextWord)){
-                for (LR_Grammar grammar : lr_grammars.get(nextWord)) {
+                for (LR0Grammar grammar : lr_grammars.get(nextWord)) {
                     // 循环遍历set
                     closure.add(grammar);
                     queue.add(grammar);
@@ -184,14 +185,14 @@ public class LRGrammarAnalyzer {
     public void generateLRConstructionTable() {
 
         // 填充动作表和状态转换表
-        for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
+        for (Map.Entry<Integer, List<LR0Grammar>> entry : canonicalCollection.entrySet()) {
             int state = entry.getKey();
-            List<LR_Grammar> items = entry.getValue();
+            List<LR0Grammar> items = entry.getValue();
 
             actionTable.putIfAbsent(state, new HashMap<>());
             gotoTable.putIfAbsent(state, new HashMap<>());
 
-            for (LR_Grammar item : items) {
+            for (LR0Grammar item : items) {
                 if (item.getDotIndex() < item.getRightWord().size()) {
                     String symbol = item.getRightWord().get(item.getDotIndex());
                     if(Objects.equals(symbol, "E")){
@@ -250,15 +251,15 @@ public class LRGrammarAnalyzer {
 
     // 获取下一个状态
     private int getNextState(int currentState, String symbol) {
-        List<LR_Grammar> items = canonicalCollection.get(currentState);
-        List<LR_Grammar> nextItems = new ArrayList<>();
-        for (LR_Grammar item : items) {
+        List<LR0Grammar> items = canonicalCollection.get(currentState);
+        List<LR0Grammar> nextItems = new ArrayList<>();
+        for (LR0Grammar item : items) {
             if (item.getDotIndex() < item.getRightWord().size() && item.getRightWord().get(item.getDotIndex()).equals(symbol)) {
-                nextItems.add(new LR_Grammar(item.getLeftWord(), item.getRightWord(), item.getDotIndex() + 1));
+                nextItems.add(new LR0Grammar(item.getLeftWord(), item.getRightWord(), item.getDotIndex() + 1));
             }
         }
         nextItems = closureHelper(nextItems);
-        for (Map.Entry<Integer, List<LR_Grammar>> entry : canonicalCollection.entrySet()) {
+        for (Map.Entry<Integer, List<LR0Grammar>> entry : canonicalCollection.entrySet()) {
             if (areGrammarsEqual(entry.getValue(), nextItems)) {
                 return entry.getKey();
             }

@@ -1,11 +1,14 @@
 package org.example.LRParser;
 
+import org.example.LRParser.LR0.LR0Grammar;
+import org.example.LRParser.LR0.LR0GrammarAnalyzer;
+
 import java.util.*;
 
 public class Java_LRParserAnalysis {
 
     private static StringBuffer prog = new StringBuffer();
-    private static LRGrammarAnalyzer lr = new LRGrammarAnalyzer();
+    private static LR0GrammarAnalyzer lr = new LR0GrammarAnalyzer();
 
     /**
      *  this method is to read the standard input
@@ -18,7 +21,7 @@ public class Java_LRParserAnalysis {
         prog.append("{\n");
         prog.append("while ( ID == NUM )\n");
         prog.append("{\n");
-        prog.append("ID = NUM;\n");
+        prog.append("ID = NUM ;\n");
         prog.append("}\n");
         prog.append("}");
     }
@@ -50,7 +53,7 @@ public class Java_LRParserAnalysis {
             System.out.println(symbolStack);
             int currentState = stateStack.peek();
             String currentToken = tokens.get(index);
-            Map<String, Object> actionRow = lr.actionTable.get(currentState);
+            Map<String, Object> actionRow = lr.getActionTable().get(currentState);
 
             if (actionRow == null || !actionRow.containsKey(currentToken)) {
                 System.out.println("Syntax error at token: " + actionRow);
@@ -73,20 +76,23 @@ public class Java_LRParserAnalysis {
                     System.out.println("Accepted");
                     return;
                 }
-            }else if(action instanceof LR_Grammar){
+            }else if(action instanceof LR0Grammar){
                 // Reduce action
-                LR_Grammar lr_grammar = (LR_Grammar) action;
+                LR0Grammar lr_0_grammar = (LR0Grammar) action;
 
-                for (int i = 0; i < lr_grammar.getRightWord().size(); i++) {
-                    stateStack.pop();
-                    symbolStack.pop();
+                if(!(lr_0_grammar.getRightWord().size()==1&& lr_0_grammar.getRightWord().get(0).equals("E"))){
+                    // Use a queue to handle the right side of the production
+                    Queue<String> rightSideQueue = new LinkedList<>(lr_0_grammar.getRightWord());
+                    while (!rightSideQueue.isEmpty()) {
+                        stateStack.pop();
+                        symbolStack.pop();
+                        rightSideQueue.poll();
+                    }
                 }
 
-                symbolStack.push(lr_grammar.getLeftWord());
-                int gotoState = (int) lr.gotoTable.get(stateStack.peek()).get(lr_grammar.getLeftWord());
+                symbolStack.push(lr_0_grammar.getLeftWord());
+                int gotoState = (int) lr.getGotoTable().get(stateStack.peek()).get(lr_0_grammar.getLeftWord());
                 stateStack.push(gotoState);
-
-//                System.out.println(String.join(" ", symbolStack));
             }
             System.out.println();
         }

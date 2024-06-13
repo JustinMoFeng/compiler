@@ -1,9 +1,9 @@
-package org.example.LRParser;
+package org.example.LRParser.LR0;
 
 import java.util.List;
 import java.util.Objects;
 
-public class LR_Grammar {
+public class LR0Grammar {
 
     private String LeftWord;
 
@@ -11,13 +11,13 @@ public class LR_Grammar {
 
     private int dotIndex;
 
-    public LR_Grammar(String leftWord, List<String> rightWord, int dotIndex) {
+    public LR0Grammar(String leftWord, List<String> rightWord, int dotIndex) {
         LeftWord = leftWord;
         RightWord = rightWord;
         this.dotIndex = dotIndex;
     }
 
-    public LR_Grammar() {
+    public LR0Grammar() {
     }
 
     public String getLeftWord() {
@@ -46,7 +46,7 @@ public class LR_Grammar {
 
     @Override
     public String toString() {
-        return "LR_Grammar{" +
+        return "LR0Grammar{" +
                 "LeftWord='" + LeftWord + '\'' +
                 ", RightWord=" + RightWord +
                 ", dotIndex=" + dotIndex +
@@ -57,7 +57,7 @@ public class LR_Grammar {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        LR_Grammar lrGrammar = (LR_Grammar) o;
+        LR0Grammar lrGrammar = (LR0Grammar) o;
         return dotIndex == lrGrammar.dotIndex && Objects.equals(LeftWord, lrGrammar.LeftWord) && Objects.equals(RightWord, lrGrammar.RightWord);
     }
 
