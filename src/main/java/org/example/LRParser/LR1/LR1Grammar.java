@@ -11,9 +11,9 @@ public class LR1Grammar {
 
     private int DotIndex;
 
-    private String LookHead;
+    private List<String> LookHead;
 
-    public LR1Grammar(String leftWord, List<String> rightWord, int dotIndex, String lookHead) {
+    public LR1Grammar(String leftWord, List<String> rightWord, int dotIndex, List<String> lookHead) {
         LeftWord = leftWord;
         RightWord = rightWord;
         DotIndex = dotIndex;
@@ -47,17 +47,17 @@ public class LR1Grammar {
         DotIndex = dotIndex;
     }
 
-    public String getLookHead() {
+    public List<String> getLookHead() {
         return LookHead;
     }
 
-    public void setLookHead(String lookHead) {
+    public void setLookHead(List<String> lookHead) {
         LookHead = lookHead;
     }
 
     @Override
     public String toString() {
-        return "LR0Grammar{" +
+        return "LR1Grammar{" +
                 "LeftWord='" + LeftWord + '\'' +
                 ", RightWord=" + RightWord +
                 ", dotIndex=" + DotIndex +

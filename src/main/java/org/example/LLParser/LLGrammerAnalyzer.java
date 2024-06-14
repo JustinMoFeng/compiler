@@ -182,7 +182,7 @@ public class LLGrammerAnalyzer {
     }
 
     // Helper method to calculate the FIRST set for a list of right-hand side symbols
-    private Set<String> calculateFirstForWords(List<String> words) {
+    public Set<String> calculateFirstForWords(List<String> words) {
         Set<String> firstSet = new HashSet<>();
         boolean containsEpsilon = true;
 
