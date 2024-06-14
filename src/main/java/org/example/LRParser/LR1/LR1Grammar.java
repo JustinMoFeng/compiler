@@ -70,7 +70,7 @@ public class LR1Grammar {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LR1Grammar lrGrammar = (LR1Grammar) o;
-        return DotIndex == lrGrammar.DotIndex && Objects.equals(LeftWord, lrGrammar.LeftWord) && Objects.equals(RightWord, lrGrammar.RightWord) && Objects.equals(LookHead, lrGrammar.LookHead);
+        return DotIndex == lrGrammar.DotIndex && Objects.equals(LeftWord, lrGrammar.LeftWord) && Objects.equals(RightWord, lrGrammar.RightWord);
     }
 
     @Override
