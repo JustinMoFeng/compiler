@@ -1,108 +1,151 @@
 package org.example.LRParser;
 
-import org.example.LRParser.LR0.LR0Grammar;
-import org.example.LRParser.LR0.LR0GrammarAnalyzer;
+import org.example.LRParser.LR1.LR1Grammar;
+import org.example.LRParser.LR1.LR1GrammarAnalyzer;
 
 import java.util.*;
 
 public class Java_LRParserAnalysis {
 
     private static StringBuffer prog = new StringBuffer();
-    private static LR0GrammarAnalyzer lr = new LR0GrammarAnalyzer();
+    private static LR1GrammarAnalyzer lr = new LR1GrammarAnalyzer();
 
-    /**
-     *  this method is to read the standard input
-     */
+    private static Stack<List<String>> ans = new Stack<>();
+
+    private static List<List<String>> tokens = new ArrayList<>();
+
     private static void read_prog() {
 //        Scanner sc = new Scanner(System.in);
 //        while (sc.hasNextLine()) {
-//            prog.append(sc.nextLine());
+//            prog.append(sc.nextLine().trim()).append("\n");
 //        }
         prog.append("{\n");
         prog.append("while ( ID == NUM )\n");
         prog.append("{\n");
-        prog.append("ID = NUM ;\n");
+        prog.append("ID = NUM\n");
         prog.append("}\n");
         prog.append("}");
     }
 
-    /**
-     *  This method splits the input string into tokens
-     */
-    private static List<String> tokenize(String input) {
-        List<String> tokens = new ArrayList<>(Arrays.asList(input.split(" ")));
-        tokens.add("$");  // End of input symbol
-        return tokens;
-    }
+    private static void tokenize() {
+        // 记录每一个token所在的行号
+        int line = 1;
+        StringBuilder token = new StringBuilder();
 
-    /**
-     *  This method performs the LR parsing and outputs the results
-     */
-    private static void analysis() {
-        read_prog();
-        String input = prog.toString().replaceAll("\\s+", " ").trim();
-        List<String> tokens = tokenize(input);
+        for (int i = 0; i < prog.length(); i++) {
+            char ch = prog.charAt(i);
 
-        Stack<Integer> stateStack = new Stack<>();
-        Stack<String> symbolStack = new Stack<>();
-        stateStack.push(0);
-
-        int index = 0;
-        while (index < tokens.size()) {
-            System.out.println(stateStack);
-            System.out.println(symbolStack);
-            int currentState = stateStack.peek();
-            String currentToken = tokens.get(index);
-            Map<String, Object> actionRow = lr.getActionTable().get(currentState);
-
-            if (actionRow == null || !actionRow.containsKey(currentToken)) {
-                System.out.println("Syntax error at token: " + actionRow);
-                System.out.println("Syntax error at token: " + currentToken);
-                index++;
-                continue; // Skip this token and try to recover
-            }
-
-            Object action = actionRow.get(currentToken);
-            System.out.println(action);
-            if (action instanceof String) {
-                String actionStr = (String) action;
-                if (actionStr.startsWith("S")) {
-                    // Shift action
-                    int nextState = Integer.parseInt(actionStr.substring(1));
-                    stateStack.push(nextState);
-                    symbolStack.push(currentToken);
-                    index++;
-                } else if (actionStr.equals("ACC")) {
-                    System.out.println("Accepted");
-                    return;
+            if (ch == '\n') {
+                if (token.length()>0) {
+                    tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
+                    token.setLength(0);
                 }
-            }else if(action instanceof LR0Grammar){
-                // Reduce action
-                LR0Grammar lr_0_grammar = (LR0Grammar) action;
-
-                if(!(lr_0_grammar.getRightWord().size()==1&& lr_0_grammar.getRightWord().get(0).equals("E"))){
-                    // Use a queue to handle the right side of the production
-                    Queue<String> rightSideQueue = new LinkedList<>(lr_0_grammar.getRightWord());
-                    while (!rightSideQueue.isEmpty()) {
-                        stateStack.pop();
-                        symbolStack.pop();
-                        rightSideQueue.poll();
-                    }
+                line++;
+            } else if (ch == ' ' || ch == '\t') {
+                if (!token.isEmpty()) {
+                    tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
+                    token.setLength(0);
                 }
-
-                symbolStack.push(lr_0_grammar.getLeftWord());
-                int gotoState = (int) lr.getGotoTable().get(stateStack.peek()).get(lr_0_grammar.getLeftWord());
-                stateStack.push(gotoState);
+            } else {
+                token.append(ch);
             }
-            System.out.println();
         }
-        System.out.println("Syntax analysis completed.");
+
+        // Add the last token if there is any
+        if (!token.isEmpty()) {
+            tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
+        }
+        tokens.add(Arrays.asList("$", String.valueOf(++line)));
+    }
+    private static void analysis() {
+            read_prog();
+            tokenize();
+            parse();
+            printAns();
     }
 
-    /**
-     * this is the main method
-     * @param args
-     */
+    public static void parse(){
+        try{
+            Stack<Integer> stateStack = new Stack<>();
+            Stack<String> symbolStack = new Stack<>();
+            stateStack.push(0);
+            int index = 0;
+            ArrayList<String> tokenList = new ArrayList<>();
+            for (List<String> tk : tokens) {
+                tokenList.add(tk.get(0));
+            }
+            ans = new Stack<>();
+            ans.add(tokenList.subList(index, tokenList.size()-1));
+            while (index < tokens.size()) {
+                Integer state = stateStack.peek();
+                String token = tokens.get(index).get(0);
+                Object action = lr.getActionTable().get(state).get(token);
+                if (action == null) {
+                    if(!token.equals(";")&& Objects.equals(symbolStack.peek(), "NUM")){
+                        System.out.println("语法错误，第" + (Integer.parseInt(tokens.get(index).get(1))-1) + "行，缺少\";\"");
+
+                        tokens.add(index, Arrays.asList(";", tokens.get(index).get(1)));
+                        throw new Exception("Syntax error");
+                    }
+                    break;
+                }
+
+                if(action instanceof String){
+                    String tmp = (String) action;
+                    if (tmp.startsWith("S")) {  // Shift
+                        int newState = Integer.parseInt(tmp.substring(1));
+                        stateStack.push(newState);
+                        symbolStack.push(token);
+                        index++;
+                    }else if (tmp.equals("Accept")) {
+//                        System.out.println("Parsing completed successfully.");
+                        break;
+                    }else {
+                        System.out.println("Unexpected error");
+                        break;
+                    }
+                }else if(action instanceof LR1Grammar){
+                    LR1Grammar tmp = (LR1Grammar) action;
+                    String[] production = tmp.getRightWord().toArray(new String[0]);
+                    if(!tmp.getRightWord().get(0).equals("E")){
+                        for (int i = 0; i < production.length; i++) {
+                            symbolStack.pop();
+                            stateStack.pop();
+                        }
+                    }
+                    symbolStack.push(tmp.getLeftWord());
+                    state = stateStack.peek();
+                    stateStack.push(lr.getGotoTable().get(state).get(symbolStack.peek()));
+                    // ansStack 中插入symbolStack+tokens.subList(index, tokens.size()-1)
+                    List<String> t = new ArrayList<>(symbolStack);
+                    t.addAll(tokenList.subList(index, tokenList.size()-1));
+                    ans.push(t);
+                } else {
+                    System.out.println("Unexpected error");
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            if(e.getMessage().equals("Syntax error")){
+                parse();
+            }
+        }
+
+    }
+
+    public static void printAns(){
+        while(!ans.isEmpty()){
+            List<String> t = ans.pop();
+            for(String s : t){
+                System.out.print(s + " ");
+            }
+            if(ans.size() != 0){
+                System.out.print("=> \n");
+            }
+        }
+
+    }
+
     public static void main(String[] args) {
         analysis();
     }

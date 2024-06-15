@@ -16,7 +16,7 @@ class TreeNode {
     }
 
     public void addChildFromHead(TreeNode child) {
-        this.children.addFirst(child);
+        this.children.add(0,child);
     }
 }
 

@@ -2,6 +2,7 @@ package org.example.LRParser.LR1;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class LR1Grammar {
 
@@ -11,9 +12,9 @@ public class LR1Grammar {
 
     private int DotIndex;
 
-    private List<String> LookHead;
+    private Set<String> LookHead;
 
-    public LR1Grammar(String leftWord, List<String> rightWord, int dotIndex, List<String> lookHead) {
+    public LR1Grammar(String leftWord, List<String> rightWord, int dotIndex, Set<String> lookHead) {
         LeftWord = leftWord;
         RightWord = rightWord;
         DotIndex = dotIndex;
@@ -47,11 +48,11 @@ public class LR1Grammar {
         DotIndex = dotIndex;
     }
 
-    public List<String> getLookHead() {
+    public Set<String> getLookHead() {
         return LookHead;
     }
 
-    public void setLookHead(List<String> lookHead) {
+    public void setLookHead(Set<String> lookHead) {
         LookHead = lookHead;
     }
 
@@ -70,7 +71,7 @@ public class LR1Grammar {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LR1Grammar lrGrammar = (LR1Grammar) o;
-        return DotIndex == lrGrammar.DotIndex && Objects.equals(LeftWord, lrGrammar.LeftWord) && Objects.equals(RightWord, lrGrammar.RightWord);
+        return DotIndex == lrGrammar.DotIndex && Objects.equals(LeftWord, lrGrammar.LeftWord) && Objects.equals(RightWord, lrGrammar.RightWord) && Objects.equals(LookHead, lrGrammar.LookHead);
     }
 
     @Override

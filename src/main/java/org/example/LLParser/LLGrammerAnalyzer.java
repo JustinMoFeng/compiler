@@ -204,7 +204,6 @@ public class LLGrammerAnalyzer {
         if (containsEpsilon) {
             firstSet.add("E");
         }
-
         return firstSet;
     }
 
