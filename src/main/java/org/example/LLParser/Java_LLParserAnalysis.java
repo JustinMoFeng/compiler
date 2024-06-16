@@ -1,6 +1,9 @@
 package org.example.LLParser;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
 
 class TreeNode {
     String value;
@@ -16,13 +19,13 @@ class TreeNode {
     }
 
     public void addChildFromHead(TreeNode child) {
-        this.children.add(0,child);
+        this.children.add(0, child);
     }
 }
 
 public class Java_LLParserAnalysis {
-    private static StringBuffer prog = new StringBuffer();
-    private static List<List<String>> tokens = new ArrayList<>();
+    private static final StringBuffer prog = new StringBuffer();
+    private static final List<List<String>> tokens = new ArrayList<>();
     private static TreeNode syntaxTreeRoot;
 
     /**
@@ -34,12 +37,28 @@ public class Java_LLParserAnalysis {
 //        while (sc.hasNextLine()) {
 //            prog.append(sc.nextLine().trim()).append(" ");
 //        }
+        //{
+        //    while ( ID > NUM )
+        //    {
+        //        if ( ID != NUM )
+        //        {
+        //            ID = NUM * NUM ;
+        //        }
+        //}
+
         prog.append("{\n");
-        prog.append("while ( ID == NUM )\n");
+        prog.append("while ( ID > NUM )\n");
         prog.append("{\n");
-        prog.append("ID = NUM\n");
+        prog.append("if ( ID >= NUM ) then\n");
+        prog.append("{\n");
+        prog.append("ID = NUM * NUM ;\n");
         prog.append("}\n");
-        prog.append("}");
+        prog.append("els\n");
+        prog.append("{\n");
+        prog.append("ID = NUM + NUM ;\n");
+        prog.append("}\n");
+        prog.append("}\n");
+        prog.append("}\n");
     }
 
     private static void tokenize() {
@@ -51,7 +70,7 @@ public class Java_LLParserAnalysis {
             char ch = prog.charAt(i);
 
             if (ch == '\n') {
-                if (token.length()>0) {
+                if (token.length() > 0) {
                     tokens.add(Arrays.asList(token.toString(), String.valueOf(line)));
                     token.setLength(0);
                 }
@@ -84,7 +103,7 @@ public class Java_LLParserAnalysis {
             TreeNode topNode = stack.peek();
             String top = topNode.value;
             String currentToken = index < tokens.size() ? tokens.get(index).get(0) : "$";
-            String currentLine = index < tokens.size() ? Integer.parseInt(tokens.get(index).get(1))-1 + "" : "-1";
+            String currentLine = index < tokens.size() ? Integer.parseInt(tokens.get(index).get(1)) - 1 + "" : "-1";
 
             if (analyzer.getTerminals().contains(top) || top.equals("$")) {
 //                System.out.println("top: " + top + ", currentToken: " + currentToken);
@@ -92,7 +111,8 @@ public class Java_LLParserAnalysis {
                     stack.pop();
                     index++;
                 } else {
-                    System.out.println("语法错误,第" + currentLine + "行,缺少" + currentToken);
+                    System.out.println("语法错误,第" + currentLine + "行," + currentToken + "不符合语法规则");
+                    System.out.println("Parsing failed");
                     return;
                 }
             } else if (analyzer.getNonterminals().contains(top)) {
@@ -129,7 +149,7 @@ public class Java_LLParserAnalysis {
                     continue;
                 }
             } else {
-                System.out.println("语法错误，第" + currentLine + "行，缺少\"" + top+"\"");
+                System.out.println("语法错误，第" + currentLine + "行，缺少\"" + top + "\"");
                 return;
             }
         }

@@ -6,29 +6,11 @@ import org.example.LLParser.LL_Grammer;
 import java.util.*;
 
 public class LR0GrammarAnalyzer {
-    private static final List<String> productions = Arrays.asList(
-        "program' -> program",
-        "program -> compoundstmt",
-        "stmt ->  ifstmt  |  whilestmt  |  assgstmt  |  compoundstmt",
-        "compoundstmt ->  { stmts }",
-        "stmts ->  stmt stmts   |   E",
-        "ifstmt ->  if ( boolexpr ) then stmt else stmt",
-        "whilestmt ->  while ( boolexpr ) stmt",
-        "assgstmt ->  ID = arithexpr ;",
-        "boolexpr  ->  arithexpr boolop arithexpr",
-        "boolop ->   <  |  >  |  <=  |  >=  | ==",
-        "arithexpr  ->  multexpr arithexprprime",
-        "arithexprprime ->  + multexpr arithexprprime  |  - multexpr arithexprprime  |   E",
-        "multexpr ->  simpleexpr  multexprprime",
-        "multexprprime ->  * simpleexpr multexprprime  |  / simpleexpr multexprprime  |   E",
-        "simpleexpr ->  ID  |  NUM  |  ( arithexpr )"
-    );
+    private final List<String> productions;
 
-    private static final List<String> terminals = Arrays.asList(
-        "{", "}", "if", "(", ")", "then", "else", "while", "ID", "=", ">", "<", ">=", "<=", "==", "+", "-", "*", "/", "NUM", "E", ";", "$"
-    );
+    private final List<String> terminals;
 
-    private final LLGrammerAnalyzer ll_grammerAnalyzer = new LLGrammerAnalyzer(productions, terminals);
+    private final LLGrammerAnalyzer ll_grammerAnalyzer;
 
     private final Map<String,List<LR0Grammar>> lr_grammars = new HashMap<>();
 
@@ -55,7 +37,10 @@ public class LR0GrammarAnalyzer {
         return gotoTable;
     }
 
-    public LR0GrammarAnalyzer() {
+    public LR0GrammarAnalyzer(List<String> productions, List<String> terminals) {
+        this.productions = productions;
+        this.terminals = terminals;
+        ll_grammerAnalyzer = new LLGrammerAnalyzer(productions, terminals);
         parseLRGrammar(ll_grammerAnalyzer.getGrammerList());
         calculateCanonical();
         generateLRConstructionTable();
@@ -66,7 +51,29 @@ public class LR0GrammarAnalyzer {
     Map<Integer, Map<String, Object>> gotoTable = new HashMap<>();
 
     public static void main(String[] args) {
-        LR0GrammarAnalyzer lr = new LR0GrammarAnalyzer();
+        final List<String> productions = Arrays.asList(
+                "program' -> program",
+                "program -> compoundstmt",
+                "stmt -> ifstmt | whilestmt | assgstmt | compoundstmt",
+                "compoundstmt -> { stmts }",
+                "stmts -> stmt stmts | E",
+                "ifstmt -> if ( boolexpr ) then stmt else stmt",
+                "whilestmt -> while ( boolexpr ) stmt",
+                "assgstmt -> ID = arithexpr ;",
+                "boolexpr -> arithexpr boolop arithexpr",
+                "boolop -> < | > | <= | >= | ==",
+                "arithexpr -> multexpr arithexprprime",
+                "arithexprprime -> + multexpr arithexprprime | - multexpr arithexprprime | E",
+                "multexpr -> simpleexpr multexprprime",
+                "multexprprime -> * simpleexpr multexprprime | / simpleexpr multexprprime | E",
+                "simpleexpr -> ID | NUM | ( arithexpr )"
+        );
+
+        final List<String> terminals = Arrays.asList(
+                "{", "}", "if", "(", ")", "then", "else", "while", "ID", "=", ">", "<", ">=", "<=", "==", "+", "-", "*", "/", "NUM", "E", ";", "$"
+        );
+
+        LR0GrammarAnalyzer lr = new LR0GrammarAnalyzer(productions, terminals);
         lr.calculateCanonical();
         lr.generateLRConstructionTable();
     }
@@ -277,8 +284,4 @@ public class LR0GrammarAnalyzer {
         System.out.println(productions.indexOf(production));
         return productions.indexOf(production);
     }
-
-
-
-
 }

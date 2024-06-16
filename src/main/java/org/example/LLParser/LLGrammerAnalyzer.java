@@ -20,34 +20,10 @@ public class LLGrammerAnalyzer {
         init();
     }
 
-    public LLGrammerAnalyzer(List<String> ProductionList,List<String> terminalList){
+    public LLGrammerAnalyzer(List<String> ProductionList, List<String> terminalList) {
         productions.addAll(ProductionList);
         terminals.addAll(terminalList);
         init();
-    }
-
-    public Set<String> getTerminals() {
-        return terminals;
-    }
-
-    public Set<String> getNonterminals() {
-        return nonterminals;
-    }
-
-    public List<String> getProductions() {
-        return productions;
-    }
-
-    public Map<String, Set<String>> getFirst() {
-        return first;
-    }
-
-    public List<LL_Grammer> getGrammerList() {
-        return grammerList;
-    }
-
-    public Map<String, Set<String>> getFollow() {
-        return follow;
     }
 
     public static void generateMap() {
@@ -121,12 +97,36 @@ public class LLGrammerAnalyzer {
         }
     }
 
+    public Set<String> getTerminals() {
+        return terminals;
+    }
+
+    public Set<String> getNonterminals() {
+        return nonterminals;
+    }
+
+    public List<String> getProductions() {
+        return productions;
+    }
+
+    public Map<String, Set<String>> getFirst() {
+        return first;
+    }
+
+    public List<LL_Grammer> getGrammerList() {
+        return grammerList;
+    }
+
+    public Map<String, Set<String>> getFollow() {
+        return follow;
+    }
+
     public Map<String, Map<String, String>> getLLParseTable() {
         return LLParseTable;
     }
 
     private List<String> calculateFirst(String nonterminal) {
-        if(first.containsKey(nonterminal)) {
+        if (first.containsKey(nonterminal)) {
             return new ArrayList<>(first.get(nonterminal));
         }
         Set<String> firstSet = new HashSet<>();
@@ -139,7 +139,7 @@ public class LLGrammerAnalyzer {
                     } else {
                         int num = 0;
                         List<String> firstList = calculateFirst(strings.get(num++));
-                        while(firstList.contains("E")) {
+                        while (firstList.contains("E")) {
                             firstList.remove("E");
                             if (strings.size() == 1) {
                                 firstList.add("E");

@@ -7,12 +7,36 @@ import java.util.*;
 
 public class Java_LRParserAnalysis {
 
+    private static final List<String> productions = Arrays.asList(
+            "program' -> program",
+            "program -> compoundstmt",
+            "stmt -> ifstmt | whilestmt | assgstmt | compoundstmt",
+            "compoundstmt -> { stmts }",
+            "stmts -> stmt stmts | E",
+            "ifstmt -> if ( boolexpr ) then stmt else stmt",
+            "whilestmt -> while ( boolexpr ) stmt",
+            "assgstmt -> ID = arithexpr ;",
+            "boolexpr -> arithexpr boolop arithexpr",
+            "boolop -> < | > | <= | >= | ==",
+            "arithexpr -> multexpr arithexprprime",
+            "arithexprprime -> + multexpr arithexprprime | - multexpr arithexprprime | E",
+            "multexpr -> simpleexpr multexprprime",
+            "multexprprime -> * simpleexpr multexprprime | / simpleexpr multexprprime | E",
+            "simpleexpr -> ID | NUM | ( arithexpr )"
+    );
+
+    private static final List<String> terminals = Arrays.asList(
+            "{", "}", "if", "(", ")", "then", "else", "while", "ID", "=", ">", "<", ">=", "<=", "==", "+", "-", "*", "/", "NUM", "E", ";", "$"
+    );
+
     private static StringBuffer prog = new StringBuffer();
-    private static LR1GrammarAnalyzer lr = new LR1GrammarAnalyzer();
+    private static final LR1GrammarAnalyzer lr = new LR1GrammarAnalyzer(productions, terminals);
 
     private static Stack<List<String>> ans = new Stack<>();
 
     private static List<List<String>> tokens = new ArrayList<>();
+
+    private static int status = 0;
 
     private static void read_prog() {
 //        Scanner sc = new Scanner(System.in);
@@ -20,11 +44,18 @@ public class Java_LRParserAnalysis {
 //            prog.append(sc.nextLine().trim()).append("\n");
 //        }
         prog.append("{\n");
-        prog.append("while ( ID == NUM )\n");
+        prog.append("while ( ID > NUM )\n");
         prog.append("{\n");
-        prog.append("ID = NUM\n");
+        prog.append("if ( ID >= NUM ) then\n");
+        prog.append("{\n");
+        prog.append("ID = NUM * NUM ;\n");
         prog.append("}\n");
-        prog.append("}");
+        prog.append("els\n");
+        prog.append("{\n");
+        prog.append("ID = NUM + NUM ;\n");
+        prog.append("}\n");
+        prog.append("}\n");
+        prog.append("}\n");
     }
 
     private static void tokenize() {
@@ -61,7 +92,7 @@ public class Java_LRParserAnalysis {
             read_prog();
             tokenize();
             parse();
-            printAns();
+            if(status==0) printAns();
     }
 
     public static void parse(){
@@ -86,8 +117,10 @@ public class Java_LRParserAnalysis {
 
                         tokens.add(index, Arrays.asList(";", tokens.get(index).get(1)));
                         throw new Exception("Syntax error");
+                    }else {
+                        System.out.println("语法错误，第" + (Integer.parseInt(tokens.get(index).get(1))-1) + "行，" + token + "不符合语法规则");
+                        throw new Exception("other error");
                     }
-                    break;
                 }
 
                 if(action instanceof String){
@@ -98,7 +131,7 @@ public class Java_LRParserAnalysis {
                         symbolStack.push(token);
                         index++;
                     }else if (tmp.equals("Accept")) {
-//                        System.out.println("Parsing completed successfully.");
+                        System.out.println("Parsing completed successfully.");
                         break;
                     }else {
                         System.out.println("Unexpected error");
@@ -128,6 +161,9 @@ public class Java_LRParserAnalysis {
         } catch (Exception e) {
             if(e.getMessage().equals("Syntax error")){
                 parse();
+            }else{
+                System.out.println("Parsing failed.");
+                status = 1;
             }
         }
 

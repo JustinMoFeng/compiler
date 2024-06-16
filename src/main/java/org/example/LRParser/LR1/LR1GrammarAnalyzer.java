@@ -5,27 +5,6 @@ import org.example.LLParser.LLGrammerAnalyzer;
 import java.util.*;
 
 public class LR1GrammarAnalyzer {
-    private static final List<String> productions = Arrays.asList(
-            "program' -> program",
-            "program -> compoundstmt",
-            "stmt -> ifstmt | whilestmt | assgstmt | compoundstmt",
-            "compoundstmt -> { stmts }",
-            "stmts -> stmt stmts | E",
-            "ifstmt -> if ( boolexpr ) then stmt else stmt",
-            "whilestmt -> while ( boolexpr ) stmt",
-            "assgstmt -> ID = arithexpr ;",
-            "boolexpr -> arithexpr boolop arithexpr",
-            "boolop -> < | > | <= | >= | ==",
-            "arithexpr -> multexpr arithexprprime",
-            "arithexprprime -> + multexpr arithexprprime | - multexpr arithexprprime | E",
-            "multexpr -> simpleexpr multexprprime",
-            "multexprprime -> * simpleexpr multexprprime | / simpleexpr multexprprime | E",
-            "simpleexpr -> ID | NUM | ( arithexpr )"
-    );
-
-    private static final List<String> terminals = Arrays.asList(
-            "{", "}", "if", "(", ")", "then", "else", "while", "ID", "=", ">", "<", ">=", "<=", "==", "+", "-", "*", "/", "NUM", "E", ";", "$"
-    );
 
 //    private static final List<String> productions = Arrays.asList(
 //            "S' -> S",
@@ -40,7 +19,11 @@ public class LR1GrammarAnalyzer {
 //            "id", "*", "=", "$"
 //    );
 
-    private final LLGrammerAnalyzer ll_grammerAnalyzer = new LLGrammerAnalyzer(productions, terminals);
+    private final List<String> productions;
+
+    private final List<String> terminals;
+
+    private final LLGrammerAnalyzer ll_grammerAnalyzer;
 
     private final Map<String,List<LR1Grammar>> lr_grammars = new HashMap<>();
 
@@ -50,7 +33,10 @@ public class LR1GrammarAnalyzer {
 
     private final Map<Integer,Map<String,Integer>> gotoTable = new HashMap<>();
 
-    public LR1GrammarAnalyzer() {
+    public LR1GrammarAnalyzer(List<String> productions, List<String> terminals) {
+        this.productions = productions;
+        this.terminals = terminals;
+        ll_grammerAnalyzer = new LLGrammerAnalyzer(productions, terminals);
         parseLR1Grammar();
         calculateCanonical();
         constructLR1ParsingTable();
@@ -287,12 +273,5 @@ public class LR1GrammarAnalyzer {
 
     public Map<Integer, Map<String, Integer>> getGotoTable() {
         return gotoTable;
-    }
-
-    public static void main(String[] args) {
-        LR1GrammarAnalyzer lr1GrammarAnalyzer = new LR1GrammarAnalyzer();
-        lr1GrammarAnalyzer.calculateCanonical();
-        lr1GrammarAnalyzer.constructLR1ParsingTable();
-
     }
 }
