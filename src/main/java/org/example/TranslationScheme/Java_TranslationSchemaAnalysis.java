@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 public class Java_TranslationSchemaAnalysis {
 
-    static int lineNum = 0;
     static boolean errorFlag = false;
     static List<IDAttribute> idTable = new ArrayList<>();
 
@@ -24,21 +23,21 @@ public class Java_TranslationSchemaAnalysis {
     }
 
     static class Grammar {
-        private List<String> grammars = new ArrayList<>();
-        private List<String> nonterminals = new ArrayList<>();
-        private List<String> terminals = new ArrayList<>();
-        private Map<String, List<String>> first = new HashMap<>();
-        private Map<String, List<String>> follow = new HashMap<>();
-        private List<List<String>> productions = new ArrayList<>();
-        private Map<String, Integer> NT_productions_begin = new HashMap<>();
-        private List<Boolean> productions_Eflag = new ArrayList<>();
+        private final List<String> grammars = new ArrayList<>();
+        private final List<String> nonterminals = new ArrayList<>();
+        private final List<String> terminals = new ArrayList<>();
+        private final Map<String, List<String>> first = new HashMap<>();
+        private final Map<String, List<String>> follow = new HashMap<>();
+        private final List<List<String>> productions = new ArrayList<>();
+        private final Map<String, Integer> NT_productions_begin = new HashMap<>();
+        private final List<Boolean> productions_Eflag = new ArrayList<>();
 
         public boolean isNonTerminal(String symbol) {
             return nonterminals.contains(symbol);
         }
 
 
-        class TableLine {
+        static class TableLine {
             String nonterminal;
             Map<String, Integer> ter_pro = new HashMap<>();
         }

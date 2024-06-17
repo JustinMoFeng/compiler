@@ -6,19 +6,6 @@ import java.util.*;
 
 public class LR1GrammarAnalyzer {
 
-//    private static final List<String> productions = Arrays.asList(
-//            "S' -> S",
-//            "S -> L = R",
-//            "S -> R",
-//            "L -> * R",
-//            "L -> id",
-//            "R -> L"
-//    );
-//
-//    private static final List<String> terminals = Arrays.asList(
-//            "id", "*", "=", "$"
-//    );
-
     private final List<String> productions;
 
     private final List<String> terminals;
