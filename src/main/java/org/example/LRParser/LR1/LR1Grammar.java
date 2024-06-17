@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * LR1文法数据结构
+ */
 public class LR1Grammar {
 
     private String LeftWord;
@@ -12,6 +15,7 @@ public class LR1Grammar {
 
     private int DotIndex;
 
+    // 预测符号
     private Set<String> LookHead;
 
     public LR1Grammar(String leftWord, List<String> rightWord, int dotIndex, Set<String> lookHead) {

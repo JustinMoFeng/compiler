@@ -2,9 +2,14 @@ package org.example.LLParser;
 
 import java.util.List;
 
+/**
+ * LL(1)文法数据结构
+ */
 public class LL_Grammer {
+    // 左部
     private String LeftWord;
 
+    // 右部
     private List<List<String>> RightWord;
 
     public LL_Grammer(String leftWord, List<List<String>> rightWord) {

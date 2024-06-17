@@ -38,26 +38,19 @@ public class Java_LRParserAnalysis {
 
     private static int status = 0;
 
+    /**
+     * 读取输入的程序
+     */
     private static void read_prog() {
-//        Scanner sc = new Scanner(System.in);
-//        while (sc.hasNextLine()) {
-//            prog.append(sc.nextLine().trim()).append("\n");
-//        }
-        prog.append("{\n");
-        prog.append("while ( ID > NUM )\n");
-        prog.append("{\n");
-        prog.append("if ( ID >= NUM ) then\n");
-        prog.append("{\n");
-        prog.append("ID = NUM * NUM ;\n");
-        prog.append("}\n");
-        prog.append("els\n");
-        prog.append("{\n");
-        prog.append("ID = NUM + NUM ;\n");
-        prog.append("}\n");
-        prog.append("}\n");
-        prog.append("}\n");
+        Scanner sc = new Scanner(System.in);
+        while (sc.hasNextLine()) {
+            prog.append(sc.nextLine().trim()).append("\n");
+        }
     }
 
+    /**
+     * 将输入的程序分割成token
+     */
     private static void tokenize() {
         // 记录每一个token所在的行号
         int line = 1;
@@ -88,6 +81,10 @@ public class Java_LRParserAnalysis {
         }
         tokens.add(Arrays.asList("$", String.valueOf(++line)));
     }
+
+    /**
+     * 语法分析，主体函数
+     */
     private static void analysis() {
             read_prog();
             tokenize();
@@ -95,6 +92,9 @@ public class Java_LRParserAnalysis {
             if(status==0) printAns();
     }
 
+    /**
+     * 解析
+     */
     public static void parse(){
         try{
             Stack<Integer> stateStack = new Stack<>();
@@ -113,11 +113,13 @@ public class Java_LRParserAnalysis {
                 Object action = lr.getActionTable().get(state).get(token);
                 if (action == null) {
                     if(!token.equals(";")&& Objects.equals(symbolStack.peek(), "NUM")){
+                        // 缺少分号
                         System.out.println("语法错误，第" + (Integer.parseInt(tokens.get(index).get(1))-1) + "行，缺少\";\"");
 
                         tokens.add(index, Arrays.asList(";", tokens.get(index).get(1)));
                         throw new Exception("Syntax error");
                     }else {
+                        // 语法错误
                         System.out.println("语法错误，第" + (Integer.parseInt(tokens.get(index).get(1))-1) + "行，" + token + "不符合语法规则");
                         throw new Exception("other error");
                     }
@@ -159,6 +161,7 @@ public class Java_LRParserAnalysis {
                 }
             }
         } catch (Exception e) {
+            // 异常处理
             if(e.getMessage().equals("Syntax error")){
                 parse();
             }else{
@@ -169,6 +172,9 @@ public class Java_LRParserAnalysis {
 
     }
 
+    /**
+     * 打印结果
+     */
     public static void printAns(){
         while(!ans.isEmpty()){
             List<String> t = ans.pop();

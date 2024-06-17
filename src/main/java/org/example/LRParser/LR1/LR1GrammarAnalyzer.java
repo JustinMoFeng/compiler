@@ -4,6 +4,9 @@ import org.example.LLParser.LLGrammerAnalyzer;
 
 import java.util.*;
 
+/**
+ * LR1文法分析器
+ */
 public class LR1GrammarAnalyzer {
 
     private final List<String> productions;
@@ -29,6 +32,9 @@ public class LR1GrammarAnalyzer {
         constructLR1ParsingTable();
     }
 
+    /**
+     * 解析LR1文法
+     */
     public void parseLR1Grammar() {
         for (String production : productions) {
             String[] split = production.split("->");
@@ -38,6 +44,7 @@ public class LR1GrammarAnalyzer {
             Set<String> lookHeads = new HashSet<>();
             for (int i = 0; i < rightWord.length; i++) {
                 if(rightWord[i].equals("|")){
+                    // 产生式右部的分隔符
                     LR1Grammar lr1Grammar = new LR1Grammar(leftWord, rightwords, 0, lookHeads);
                     if(lr_grammars.containsKey(leftWord)){
                         lr_grammars.get(leftWord).add(lr1Grammar);
@@ -48,6 +55,7 @@ public class LR1GrammarAnalyzer {
                     }
                     rightwords = new ArrayList<>();
                 }else if(i==rightWord.length-1) {
+                    // 产生式右部的最后一个单词
                     rightwords.add(rightWord[i]);
                     LR1Grammar lr1Grammar = new LR1Grammar(leftWord, rightwords, 0, lookHeads);
                     if (lr_grammars.containsKey(leftWord)) {
@@ -64,6 +72,9 @@ public class LR1GrammarAnalyzer {
         }
     }
 
+    /**
+     * 计算项目集规范族
+     */
     public void calculateCanonical(){
         Set<LR1Grammar> start = new HashSet<>();
 //        start.add(new LR1Grammar("S'", Arrays.asList("S"), 0, new HashSet<>(Arrays.asList("$"))));
@@ -92,7 +103,7 @@ public class LR1GrammarAnalyzer {
                 }
             }
         }
-//        // 打印项目集规范族
+//        打印项目集规范族
 //        for (Map.Entry<Integer, Set<LR1Grammar>> entry : canonicalCollection.entrySet()) {
 //            System.out.println("I" + entry.getKey() + ":");
 //            for (LR1Grammar lr1Grammar : entry.getValue()) {
@@ -101,6 +112,12 @@ public class LR1GrammarAnalyzer {
 //        }
     }
 
+    /**
+     * 判断是否在项目集规范族中
+     * @param next
+     * @param canonicalCollection
+     * @return
+     */
     private boolean isInMap(Set<LR1Grammar> next, Map<Integer, Set<LR1Grammar>> canonicalCollection) {
         for (Map.Entry<Integer, Set<LR1Grammar>> entry : canonicalCollection.entrySet()) {
             if(areSetEqual(next, new HashSet<>(entry.getValue()))){
@@ -110,6 +127,12 @@ public class LR1GrammarAnalyzer {
         return false;
     }
 
+    /**
+     * 计算GOTO(I,X)
+     * @param I
+     * @param X
+     * @return
+     */
     public Set<LR1Grammar> GOTO(Set<LR1Grammar> I, String X){
         Set<LR1Grammar> J = new HashSet<>();
         for (LR1Grammar lr1Grammar : I) {
@@ -120,6 +143,11 @@ public class LR1GrammarAnalyzer {
         return closureHelper(J);
     }
 
+    /**
+     * 计算闭包
+     * @param I
+     * @return
+     */
     public Set<LR1Grammar> closureHelper(Set<LR1Grammar> I){
         Set<LR1Grammar> prev = new HashSet<>();
         Set<LR1Grammar> next = new HashSet<>(I);
@@ -155,6 +183,12 @@ public class LR1GrammarAnalyzer {
         return next;
     }
 
+    /**
+     * 在集合中查找文法
+     * @param lr1Grammar1
+     * @param next
+     * @return
+     */
     private LR1Grammar findGrammarInSet(LR1Grammar lr1Grammar1, Set<LR1Grammar> next) {
         for (LR1Grammar lr1Grammar : next) {
             if(lr1Grammar.getDotIndex()==lr1Grammar1.getDotIndex() && lr1Grammar.getLeftWord().equals(lr1Grammar1.getLeftWord()) && lr1Grammar.getRightWord().equals(lr1Grammar1.getRightWord())){
@@ -164,6 +198,12 @@ public class LR1GrammarAnalyzer {
         return null;
     }
 
+    /**
+     * 判断两个集合是否相等
+     * @param set1
+     * @param set2
+     * @return
+     */
     public boolean areSetEqual(Set<LR1Grammar> set1, Set<LR1Grammar> set2){
         if(set1.size()!=set2.size()){
             return false;
@@ -180,6 +220,9 @@ public class LR1GrammarAnalyzer {
         return true;
     }
 
+    /**
+     * 构造LR1分析表
+     */
     public void constructLR1ParsingTable() {
         // 初始化action表和goto表
         for (Integer state : canonicalCollection.keySet()) {
@@ -228,7 +271,7 @@ public class LR1GrammarAnalyzer {
             }
         }
 
-        // 输出动作表和状态转换表
+//         输出动作表和状态转换表
 //        System.out.println("Action Table:");
 //        for (Map.Entry<Integer, Map<String, Object>> entry : actionTable.entrySet()) {
 //            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
@@ -248,7 +291,6 @@ public class LR1GrammarAnalyzer {
         }
         return -1; // 表示未找到
     }
-
 
     public Map<Integer, Set<LR1Grammar>> getCanonicalCollection() {
         return canonicalCollection;

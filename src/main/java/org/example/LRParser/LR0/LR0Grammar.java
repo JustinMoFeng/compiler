@@ -3,12 +3,16 @@ package org.example.LRParser.LR0;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * LR0文法数据结构
+ */
 public class LR0Grammar {
 
     private String LeftWord;
 
     private List<String> RightWord;
 
+    // 点的位置，表示点在第几个rightWord前面
     private int dotIndex;
 
     public LR0Grammar(String leftWord, List<String> rightWord, int dotIndex) {

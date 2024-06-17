@@ -19,22 +19,17 @@ public class Java_LexAnalysis {
      * This method is to read the standard input
      */
     private static void read_prog() {
-//         Scanner sc = new Scanner(System.in);
-//         while(sc.hasNextLine())
-//         {
-//             prog.append(sc.nextLine());
-//         }
-        prog.append("int main()\n");
-        prog.append("{\n");
-        prog.append("int i = 0;// 注释 test\n");
-        prog.append("for (i = 0; i != 10; ++i)\n");
-        prog.append("{\n");
-        prog.append("printf(\"%d\",i);\n");
-        prog.append("}\n");
-        prog.append("return 0;\n");
-        prog.append("}");
+         Scanner sc = new Scanner(System.in);
+         while(sc.hasNextLine())
+         {
+             prog.append(sc.nextLine());
+         }
     }
 
+    /**
+     * This method is to fill wordPair with the tokens
+     * @param tmp
+     */
     public static void start(StringBuffer tmp){
         prog = tmp;
         read_c_keys();
@@ -42,6 +37,10 @@ public class Java_LexAnalysis {
         addingTokens();
     }
 
+    /**
+     * This method is to fill wordList with the tokens
+     * @param tmp
+     */
     public static void startWithList(StringBuffer tmp){
         prog = tmp;
         read_c_keys();
@@ -77,7 +76,7 @@ public class Java_LexAnalysis {
     }
 
     /**
-     * This method is to analyze the program
+     * This method is to analyze the program according to lexicalDFA.png
      */
     private static void analyzeProg() {
         int currentIndex = 0;
@@ -680,6 +679,9 @@ public class Java_LexAnalysis {
         }
     }
 
+    /**
+     * This method is to fill wordPair with the tokens
+     */
     public static void addingTokens(){
         int index = 0;
         for (String token : tokens) {
@@ -698,6 +700,9 @@ public class Java_LexAnalysis {
         }
     }
 
+    /**
+     * This method is to fill wordList with the tokens
+     */
     public static void addingOneTokens(){
         int index = 0;
         for (String token : tokens) {
@@ -729,8 +734,9 @@ public class Java_LexAnalysis {
     }
 
 
-
-
+    /**
+     * This is the enum of TokenType
+     */
     enum TokenType {
         START,
         ERR,
@@ -785,6 +791,9 @@ public class Java_LexAnalysis {
         OP_SINGLE_QUOTATION,
     }
 
+    /**
+     * This is the enum of BracketType
+     */
     enum BracketType {
         START,
         LEFT_BRACKET,

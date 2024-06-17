@@ -30,6 +30,10 @@ public class LLGrammerAnalyzer {
 
     }
 
+    /**
+     * test main function
+     * @param args
+     */
     public static void main(String[] args) {
         List<String> productions = new ArrayList<>();
         productions.add("program -> compoundstmt");
@@ -125,6 +129,11 @@ public class LLGrammerAnalyzer {
         return LLParseTable;
     }
 
+    /**
+     * Calculate the FIRST set for a nonterminal
+     * @param nonterminal
+     * @return
+     */
     private List<String> calculateFirst(String nonterminal) {
         if (first.containsKey(nonterminal)) {
             return new ArrayList<>(first.get(nonterminal));
@@ -157,6 +166,9 @@ public class LLGrammerAnalyzer {
         return new ArrayList<>(firstSet);
     }
 
+    /**
+     * Generate the LL(1) parse table
+     */
     private void generateLLParseTable() {
         for (LL_Grammer grammer : grammerList) {
             String nonterminal = grammer.getLeftWord();
@@ -181,7 +193,10 @@ public class LLGrammerAnalyzer {
         }
     }
 
-    // Helper method to calculate the FIRST set for a list of right-hand side symbols
+    /**
+     * Helper method to calculate the FIRST set for a list of right-hand side symbols
+     * @param words
+     */
     public Set<String> calculateFirstForWords(List<String> words) {
         Set<String> firstSet = new HashSet<>();
         boolean containsEpsilon = true;
@@ -235,6 +250,9 @@ public class LLGrammerAnalyzer {
 
     }
 
+    /**
+     * this method is to process the production
+     */
     private void processProduction() {
         for (String production : productions) {
             String[] split = production.split("->");
@@ -249,9 +267,11 @@ public class LLGrammerAnalyzer {
                 String[] rightSplit2 = s.trim().split(" ");
                 List<String> rightWord = new ArrayList<>();
                 for (String s1 : rightSplit2) {
+                    // 如果不是终结符，那么就添加到nonterminals中
                     if (!terminals.contains(s1) && !Objects.equals(s1, "")) {
                         nonterminals.add(s1);
                     }
+                    // 如果是空串，那么就不添加到rightWord中
                     if (!Objects.equals(s1, "")) rightWord.add(s1);
                 }
                 rightWordList.add(rightWord);
@@ -261,6 +281,10 @@ public class LLGrammerAnalyzer {
         }
     }
 
+    /**
+     * Calculate the FOLLOW set for a nonterminal
+     * @param nonterminal
+     */
     private void calculateFollow(String nonterminal) {
         if (!follow.containsKey(nonterminal)) {
             follow.put(nonterminal, new HashSet<>());

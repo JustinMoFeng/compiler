@@ -1,10 +1,10 @@
 package org.example.LLParser;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
+/**
+ * 语法树数据结构
+ */
 class TreeNode {
     String value;
     List<TreeNode> children;
@@ -23,6 +23,9 @@ class TreeNode {
     }
 }
 
+/**
+ * LL(1)文法分析器
+ */
 public class Java_LLParserAnalysis {
     private static final StringBuffer prog = new StringBuffer();
     private static final List<List<String>> tokens = new ArrayList<>();
@@ -33,39 +36,19 @@ public class Java_LLParserAnalysis {
      */
     private static void read_prog() {
         // Sample input for testing
-//        Scanner sc = new Scanner(System.in);
-//        while (sc.hasNextLine()) {
-//            prog.append(sc.nextLine().trim()).append(" ");
-//        }
-        //{
-        //    while ( ID > NUM )
-        //    {
-        //        if ( ID != NUM )
-        //        {
-        //            ID = NUM * NUM ;
-        //        }
-        //}
-
-        prog.append("{\n");
-        prog.append("while ( ID > NUM )\n");
-        prog.append("{\n");
-        prog.append("if ( ID >= NUM ) then\n");
-        prog.append("{\n");
-        prog.append("ID = NUM * NUM ;\n");
-        prog.append("}\n");
-        prog.append("els\n");
-        prog.append("{\n");
-        prog.append("ID = NUM + NUM ;\n");
-        prog.append("}\n");
-        prog.append("}\n");
-        prog.append("}\n");
+        Scanner sc = new Scanner(System.in);
+        while (sc.hasNextLine()) {
+            prog.append(sc.nextLine().trim()).append("\n");
+        }
     }
 
+    /**
+     * this method is to tokenize the input
+     */
     private static void tokenize() {
         // 记录每一个token所在的行号
         int line = 1;
         StringBuilder token = new StringBuilder();
-
         for (int i = 0; i < prog.length(); i++) {
             char ch = prog.charAt(i);
 
@@ -91,6 +74,10 @@ public class Java_LLParserAnalysis {
         }
     }
 
+    /**
+     * this method is to parse the input
+     * @param analyzer
+     */
     private static void parse(LLGrammerAnalyzer analyzer) {
         Stack<TreeNode> stack = new Stack<>();
         syntaxTreeRoot = new TreeNode("program");  // Assuming "program" is the start symbol
@@ -106,18 +93,17 @@ public class Java_LLParserAnalysis {
             String currentLine = index < tokens.size() ? Integer.parseInt(tokens.get(index).get(1)) - 1 + "" : "-1";
 
             if (analyzer.getTerminals().contains(top) || top.equals("$")) {
-//                System.out.println("top: " + top + ", currentToken: " + currentToken);
                 if (top.equals(currentToken)) {
                     stack.pop();
                     index++;
                 } else {
+                    // 栈顶终结符与当前token不匹配
                     System.out.println("语法错误,第" + currentLine + "行," + currentToken + "不符合语法规则");
                     System.out.println("Parsing failed");
                     return;
                 }
             } else if (analyzer.getNonterminals().contains(top)) {
                 String production = analyzer.getLLParseTable().get(top).get(currentToken);
-//                System.out.println("top: " + top + ", currentToken: " + currentToken + ", production: " + production);
                 if (production != null) {
                     stack.pop();
                     if (!production.equals("E")) {
@@ -149,6 +135,7 @@ public class Java_LLParserAnalysis {
                     continue;
                 }
             } else {
+                // 栈顶元素既不是终结符也不是非终结符
                 System.out.println("语法错误，第" + currentLine + "行，缺少\"" + top + "\"");
                 return;
             }
@@ -157,6 +144,11 @@ public class Java_LLParserAnalysis {
         printSyntaxTree(syntaxTreeRoot, 0);
     }
 
+    /**
+     * this method is to print the syntax tree
+     * @param node
+     * @param indent
+     */
     private static void printSyntaxTree(TreeNode node, int indent) {
         for (int i = 0; i < indent; i++) {
             System.out.print("\t");
@@ -167,6 +159,10 @@ public class Java_LLParserAnalysis {
         }
     }
 
+    /**
+     * this method is to print the error message
+     * @param index
+     */
     private static void printError(int index) {
         String line = index < tokens.size() ? tokens.get(index).get(1) : "unknown";
         String token = index < tokens.size() ? tokens.get(index).get(0) : "unknown";
@@ -175,6 +171,7 @@ public class Java_LLParserAnalysis {
 
     /**
      * you should add some code in this method to achieve this lab
+     * @param analyzer
      */
     public static void analysis(LLGrammerAnalyzer analyzer) {
         read_prog();
@@ -189,6 +186,7 @@ public class Java_LLParserAnalysis {
      */
     public static void main(String[] args) {
         List<String> productions = new ArrayList<>();
+        // 产生式初始化
         productions.add("program -> compoundstmt");
         productions.add("stmt ->  ifstmt  |  whilestmt  |  assgstmt  |  compoundstmt");
         productions.add("compoundstmt ->  { stmts }");

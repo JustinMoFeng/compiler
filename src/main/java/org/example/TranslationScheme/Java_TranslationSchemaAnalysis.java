@@ -10,6 +10,9 @@ public class Java_TranslationSchemaAnalysis {
     static boolean errorFlag = false;
     static List<IDAttribute> idTable = new ArrayList<>();
 
+    /**
+     * IDAttribute class
+     */
     static class IDAttribute {
         String name;
         String type;
@@ -22,6 +25,9 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
+    /**
+     * LLGrammar类
+     */
     static class Grammar {
         private final List<String> grammars = new ArrayList<>();
         private final List<String> nonterminals = new ArrayList<>();
@@ -44,6 +50,9 @@ public class Java_TranslationSchemaAnalysis {
 
         private List<TableLine> table = new ArrayList<>();
 
+        /**
+         * 预处理
+         */
         public void preprocess() {
             int productionNum = 0;
             for (String grammar : grammars) {
@@ -251,6 +260,9 @@ public class Java_TranslationSchemaAnalysis {
             return -1; // Or throw an exception
         }
 
+        /**
+         * 构造预测分析表
+         */
         public void tableConstruct() {
             for (String nonterminal : nonterminals) {
                 TableLine temp = new TableLine();
@@ -305,7 +317,19 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
+    /**
+     * 核心：翻译
+     */
     static class Translation {
+        /**
+         * 声明变量
+         * @param id
+         * @param type
+         * @param value
+         * @param valueType
+         * @param line
+         * @param error
+         */
         void declAttribute(String id, String type, String value, String valueType, int line, List<String> error) {
 //            System.out.println(id+" "+type+" "+value+" "+valueType);
             IDAttribute temp = new IDAttribute(id, type, value);
@@ -330,6 +354,14 @@ public class Java_TranslationSchemaAnalysis {
             idTable.add(temp);
         }
 
+        /**
+         * 赋值语句
+         * @param id
+         * @param value
+         * @param valueType
+         * @param line
+         * @param error
+         */
         void assgstmtAttribute(String id, String value, String valueType, int line, List<String> error) {
             boolean isKnownID = false;
             for (IDAttribute idAttr : idTable) {
@@ -359,6 +391,17 @@ public class Java_TranslationSchemaAnalysis {
             }
         }
 
+        /**
+         * 布尔表达式
+         * @param val1
+         * @param type1
+         * @param val2
+         * @param type2
+         * @param op
+         * @param line
+         * @param error
+         * @return
+         */
         boolean boolexprAttribute(String val1, String type1, String val2, String type2, String op, int line, List<String> error) {
             if (!type1.equals(type2)) {
                 error.add("error message:line " + line + ",type of two operands are not the same.");
@@ -403,6 +446,17 @@ public class Java_TranslationSchemaAnalysis {
             }
         }
 
+        /**
+         * 算术表达式
+         * @param multexprVal
+         * @param multexprType
+         * @param arithexprprimeVal
+         * @param arithexprprimeType
+         * @param op
+         * @param line
+         * @param error
+         * @return
+         */
         String arithexprAttribute(String multexprVal, String multexprType, String arithexprprimeVal, String arithexprprimeType, String op, int line, List<String> error) {
             if (arithexprprimeType.equals("E")) {
                 return multexprVal;
@@ -434,6 +488,17 @@ public class Java_TranslationSchemaAnalysis {
             return result;
         }
 
+        /**
+         * 乘法表达式
+         * @param simpleexprVal
+         * @param simpleexprType
+         * @param multexprprimeVal
+         * @param multexprprimeType
+         * @param op
+         * @param line
+         * @param error
+         * @return
+         */
         String multexprAttribute(String simpleexprVal, String simpleexprType, String multexprprimeVal, String multexprprimeType, String op, int line, List<String> error) {
             if (multexprprimeType.equals("E")) {
                 return simpleexprVal;
@@ -468,6 +533,9 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
+    /**
+     * 语法树
+     */
     static class LLTree {
         static class TreeNode {
             String symbol;
@@ -482,6 +550,20 @@ public class Java_TranslationSchemaAnalysis {
 
         TreeNode start;
 
+        /**
+         * 构造语法树
+         * @param symbol
+         * @param translation
+         * @param grammar
+         * @param inputStack
+         * @param needStack
+         * @param line
+         * @param lineNum
+         * @param error
+         * @param parent
+         * @param childNum
+         * @return
+         */
         TreeNode treeCreate(String symbol, Translation translation, Grammar grammar, Stack<String> inputStack, Stack<String> needStack, List<Integer> line, int[] lineNum, List<String> error, TreeNode parent, int childNum) {
             TreeNode root = new TreeNode();
             root.symbol = symbol;
@@ -686,6 +768,11 @@ public class Java_TranslationSchemaAnalysis {
             return root;
         }
 
+        /**
+         * 输出语法树（测试用）
+         * @param root
+         * @param tabNum
+         */
         void treeOutput(TreeNode root, int tabNum) {
             if (root.hasChild) {
                 for (int i = 0; i < tabNum; i++) {
@@ -706,6 +793,9 @@ public class Java_TranslationSchemaAnalysis {
 
     private static StringBuffer prog = new StringBuffer();
 
+    /**
+     * 读取输入
+     */
     private static void read_prog()
     {
         Scanner sc = new Scanner(System.in);
@@ -714,6 +804,10 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
+    /**
+     * 主函数
+     * @param args
+     */
     public static void main(String[] args) {
         read_prog();
         Grammar grammar = new Grammar();
@@ -742,6 +836,12 @@ public class Java_TranslationSchemaAnalysis {
         }
     }
 
+    /**
+     * 读取输入（并处理）
+     * @param progs
+     * @param inputStack
+     * @param line
+     */
     static void inputGet(StringBuffer progs, Stack<String> inputStack, List<Integer> line) {
         Scanner scanner = new Scanner(progs.toString());
         int lines = 1;

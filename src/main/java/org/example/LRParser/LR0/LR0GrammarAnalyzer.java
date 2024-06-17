@@ -5,6 +5,9 @@ import org.example.LLParser.LL_Grammer;
 
 import java.util.*;
 
+/**
+ * LR0文法分析器
+ */
 public class LR0GrammarAnalyzer {
     private final List<String> productions;
 
@@ -50,6 +53,10 @@ public class LR0GrammarAnalyzer {
     Map<Integer, Map<String, Object>> actionTable = new HashMap<>();
     Map<Integer, Map<String, Object>> gotoTable = new HashMap<>();
 
+    /**
+     * main function
+     * @param args
+     */
     public static void main(String[] args) {
         final List<String> productions = Arrays.asList(
                 "program' -> program",
@@ -78,6 +85,10 @@ public class LR0GrammarAnalyzer {
         lr.generateLRConstructionTable();
     }
 
+    /**
+     * This method is used to parse the LL grammar to LR grammar
+     * @param ll_grammars
+     */
     public void parseLRGrammar(List<LL_Grammer> ll_grammars){
         for (LL_Grammer ll_grammer : ll_grammars) {
             List<List<String>> rightWord = ll_grammer.getRightWord();
@@ -95,6 +106,9 @@ public class LR0GrammarAnalyzer {
         }
     }
 
+    /**
+     * 计算项目集规范族
+     */
     public void calculateCanonical(){
         // 初始化I0
         List<LR0Grammar> I0 = new ArrayList<>();
@@ -142,16 +156,20 @@ public class LR0GrammarAnalyzer {
                 }
             }
         }
-        // 输出项目集规范族
-        for (Map.Entry<Integer, List<LR0Grammar>> entry : canonicalCollection.entrySet()) {
-            System.out.println("I" + entry.getKey() + ":");
-            for (LR0Grammar lr_0_grammar : entry.getValue()) {
-                System.out.println("    " + lr_0_grammar.getLeftWord() + " -> " + lr_0_grammar.getRightWord() + ", " + lr_0_grammar.getDotIndex());
-            }
-        }
+//         输出项目集规范族
+//        for (Map.Entry<Integer, List<LR0Grammar>> entry : canonicalCollection.entrySet()) {
+//            System.out.println("I" + entry.getKey() + ":");
+//            for (LR0Grammar lr_0_grammar : entry.getValue()) {
+//                System.out.println("    " + lr_0_grammar.getLeftWord() + " -> " + lr_0_grammar.getRightWord() + ", " + lr_0_grammar.getDotIndex());
+//            }
+//        }
     }
 
-    // 辅助函数，检查两个List<LR0Grammar>是否相同
+    /**
+     * 辅助函数，检查两个List<LR0Grammar>是否相同
+     * @param list1
+     * @param list2
+     */
     private boolean areGrammarsEqual(List<LR0Grammar> list1, List<LR0Grammar> list2) {
         if (list1.size() != list2.size()) {
             return false;
@@ -164,8 +182,11 @@ public class LR0GrammarAnalyzer {
         return true;
     }
 
-
-    // 计算集群的闭包
+    /**
+     * 计算集群的闭包
+     * @param I
+     * @return closure
+     */
     public List<LR0Grammar> closureHelper(List<LR0Grammar> I){
         // 初始化一个set用于存储已经遍历过的项目
         Set<LR0Grammar> closure = new HashSet<>(I);
@@ -189,6 +210,9 @@ public class LR0GrammarAnalyzer {
         return new ArrayList<>(closure);
     }
 
+    /**
+     * 生成LR分析表
+     */
     public void generateLRConstructionTable() {
 
         // 填充动作表和状态转换表
@@ -244,19 +268,24 @@ public class LR0GrammarAnalyzer {
             }
         }
 
-        // 输出动作表和状态转换表
-        System.out.println("Action Table:");
-        for (Map.Entry<Integer, Map<String, Object>> entry : actionTable.entrySet()) {
-            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
-        }
-
-        System.out.println("Goto Table:");
-        for (Map.Entry<Integer, Map<String, Object>> entry : gotoTable.entrySet()) {
-            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
-        }
+//         输出动作表和状态转换表
+//        System.out.println("Action Table:");
+//        for (Map.Entry<Integer, Map<String, Object>> entry : actionTable.entrySet()) {
+//            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
+//        }
+//
+//        System.out.println("Goto Table:");
+//        for (Map.Entry<Integer, Map<String, Object>> entry : gotoTable.entrySet()) {
+//            System.out.println("State " + entry.getKey() + ": " + entry.getValue());
+//        }
     }
 
-    // 获取下一个状态
+    /**
+     * 获取下一个状态
+     * @param currentState
+     * @param symbol
+     * @return
+     */
     private int getNextState(int currentState, String symbol) {
         List<LR0Grammar> items = canonicalCollection.get(currentState);
         List<LR0Grammar> nextItems = new ArrayList<>();
@@ -274,7 +303,12 @@ public class LR0GrammarAnalyzer {
         return -1;
     }
 
-    // 查找产生式的索引
+    /**
+     * 查找产生式的索引
+     * @param lhs
+     * @param rhs
+     * @return
+     */
     private int findProductionIndex(String lhs, List<String> rhs) {
         String production = lhs + " ->";
         for (String s : rhs) {
